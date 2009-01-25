@@ -1,0 +1,9 @@
+setup.cfg
+setup.py
+simplesegy/__init__.py
+simplesegy.egg-info/PKG-INFO
+simplesegy.egg-info/SOURCES.txt
+simplesegy.egg-info/dependency_links.txt
+simplesegy.egg-info/entry_points.txt
+simplesegy.egg-info/not-zip-safe
+simplesegy.egg-info/top_level.txt
