@@ -199,7 +199,7 @@ class Trace:
                 samples = []
                 code = data_format_struct[self.sample_type]
                 base = self.offset+240
-                for i in range(self.TraceSamples):
+                for i in range(self.trace_samples):
                     start = base+i*self.sample_size
                     end = start+self.sample_size
                     samples.append( struct.unpack(code,self.data[start:end])[0] )
