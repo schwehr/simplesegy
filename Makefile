@@ -16,5 +16,8 @@ sdist:
 	./setup.py sdist --formats=bztar
 	md5 dist/simplesegy-${VERSION}.tar.bz2
 
+svn-branch:
+	svn cp https://cowfish.unh.edu/projects/schwehr/trunk/src/${PKG} https://cowfish.unh.edu/projects/schwehr/branches/${PKG}/${PKG}-${VERSION}
+
 register:
 	./setup.py register
