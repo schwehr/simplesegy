@@ -1,9 +1,16 @@
+Makefile
+README
+VERSION
 setup.cfg
 setup.py
+docs/blank.metadata.tmpl
 simplesegy/__init__.py
+simplesegy/metadata.py
+simplesegy/segy.py
 simplesegy.egg-info/PKG-INFO
 simplesegy.egg-info/SOURCES.txt
 simplesegy.egg-info/dependency_links.txt
 simplesegy.egg-info/entry_points.txt
 simplesegy.egg-info/not-zip-safe
+simplesegy.egg-info/requires.txt
 simplesegy.egg-info/top_level.txt

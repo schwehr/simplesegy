@@ -1,3 +1,4 @@
 
-      # -*- Entry points: -*-
+      [console_scripts]
+      segy-metadata = simplesegy.metadata:main
       

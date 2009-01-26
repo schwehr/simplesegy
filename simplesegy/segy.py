@@ -15,8 +15,6 @@ Read SEG-Y Rev 0 and 1.  Partially derived from Kurt Schwehr's segy-py / seismic
 @since: 2009-Jan-25
 @status: under development
 @organization: U{CCOM<http://ccom.unh.edu/>} 
-
-@todo: delayed decoding for speed
 '''
 
 import sys
@@ -26,7 +24,6 @@ import struct # Unpacking of binary data
 import datetime
 import time
 import codecs
-
 
 class SegyError(Exception):
     def __init__(self,msg):

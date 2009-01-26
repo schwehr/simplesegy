@@ -14,3 +14,7 @@ default:
 
 sdist:
 	./setup.py sdist --formats=bztar
+	md5 dist/simplesegy-${VERSION}.tar.bz2
+
+register:
+	./setup.py register

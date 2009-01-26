@@ -1,11 +1,11 @@
 Metadata-Version: 1.0
 Name: simplesegy
-Version: 0.1dev
-Summary: Seimic data reader
-Home-page: http://vislab-ccom.unh.edu/~schwehr/software/simplesegy
+Version: 0.2
+Summary: Seimic data SEG-Y reader
+Home-page: http://vislab-ccom.unh.edu/~schwehr/software/simplesegy/
 Author: Kurt Schwehr
 Author-email: kurt@ccom.unh.edu
-License: Python
+License: PSF
 Description: Stripped down SEGY reader.
 Keywords: science geophysics
 Platform: UNKNOWN
