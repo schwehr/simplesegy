@@ -1,3 +1,4 @@
+HISTORY.html
 Makefile
 README
 VERSION
