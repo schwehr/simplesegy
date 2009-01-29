@@ -196,21 +196,18 @@ class Trace:
     def __getattr__(self,name):
         if name=='samples':
             if self.sample_type in data_format_struct:
-                samples = []
                 code = data_format_struct[self.sample_type]
                 base = self.offset+240
-                for i in range(self.trace_samples):
-                    start = base+i*self.sample_size
-                    end = start+self.sample_size
-                    samples.append( struct.unpack(code,self.data[start:end])[0] )
-                self.samples = samples # Cache it
-                return samples
+                end = base + self.sample_size * self.trace_samples
+                fmt = '>%d%s' % (self.trace_samples, code[1:])
+                self.samples = struct.unpack(fmt, self.data[base:end]) 
+                return self.samples
         if name in trace_field_lut:
             struct_code,start,end = trace_field_lut[name]
             val = struct.unpack(struct_code,self.data[self.offset+start:end+self.offset])[0]
             self.__dict__[name] = val
             return val
-        raise AttributeError, name
+        raise AttributeError(name)
 
     def datetime(self):
         '''
@@ -261,7 +258,7 @@ class SegyIterator:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self.cur_pos > self.size-1:
             raise StopIteration
         trace = Trace(self.data,self.sample_type,self.cur_pos)
@@ -345,7 +342,7 @@ class Segy:
         file_pos = 3600
         self.extended_text_hdrs = []
         for i in range (self.num_extended_text_headers):
-            self.extended_text_hdrs.append = decode_text(data[file_pos:file_pos+3200])
+            self.extended_text_hdrs.append(decode_text(data[file_pos:file_pos+3200]))
             file_pos += 3200
 
         self.trace_start = file_pos
