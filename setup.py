@@ -24,7 +24,7 @@ Stripped down SEGY reader.""",
       ],
       entry_points = '''
       [console_scripts]
-      segy-metadata = simplesegy.metadata:main
+      segy-metadata = simplesegy.cmds.metadata:main
       ''',
       package_data = {
         'docs': ['*'],
