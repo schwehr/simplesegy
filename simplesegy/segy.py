@@ -199,11 +199,17 @@ class Trace:
                 code = data_format_struct[self.sample_type]
                 base = self.offset+240
                 end = base + self.sample_size * self.trace_samples
-                fmt = '>%d%s' % (self.trace_samples, code[1:])
+                endian = '>'
+                if self.swap_byte_order:
+                    endian = '<'
+                fmt = '%s%d%s' % (endian,self.trace_samples, code[1:])
                 self.samples = struct.unpack(fmt, self.data[base:end]) 
                 return self.samples
         if name in trace_field_lut:
             struct_code,start,end = trace_field_lut[name]
+            if self.swap_byte_order:
+                struct_code = '<' + struct_code[1:]
+            print 'FIX',self.swap_byte_order, trace_field_lut[name], '->',struct_code
             val = struct.unpack(struct_code,self.data[self.offset+start:end+self.offset])[0]
             self.__dict__[name] = val
             return val
@@ -218,15 +224,23 @@ class Trace:
         return datetime.datetime(self.year,t.tm_mon,t.tm_mday,self.hour,self.min,self.sec)
 
 
-    def __init__(self,data,sample_type=3,data_offset=0):
+    def __init__(self,data,sample_type=3,data_offset=0, swap_byte_order=False):
         #hdr = {}
         offset = self.offset = data_offset
+
+        self.swap_byte_order = swap_byte_order
 
         self.sample_type=sample_type
         self.sample_size = data_format_bytes_per_sample[sample_type]
 
         # have to prefetch this one attribute
-        self.trace_samples = struct.unpack('>h',data[offset+114:offset+116])[0]
+        if swap_byte_order:
+            print 'swap byte order'
+            self.trace_samples = struct.unpack('<h',data[offset+114:offset+116])[0]
+        else:
+            self.trace_samples = struct.unpack('>h',data[offset+114:offset+116])[0]
+
+        print 'trace_samples',self.trace_samples
 
         self.size = self.sample_size * self.trace_samples + 240 # 240 For binary header
         self.data = data
@@ -255,15 +269,25 @@ class SegyIterator:
         self.data = segy.data
         self.sample_type = segy.sample_format
 
+        self.trace_count=0
+
+        self.swap_byte_order = segy.swap_byte_order
+
     def __iter__(self):
         return self
 
     def __next__(self):
         if self.cur_pos > self.size-1:
             raise StopIteration
-        trace = Trace(self.data,self.sample_type,self.cur_pos)
+        trace = Trace(self.data,self.sample_type,self.cur_pos,swap_byte_order=self.swap_byte_order)
+
         self.cur_pos += len(trace)
+        self. trace_count += 1
         return trace
+
+    def next(self):
+        'python 2.x compat'
+        return self.__next__()
 
 def decode_text(in_data):
     '''Decode ASCII or EBCDIC text block'''
@@ -324,7 +348,11 @@ segy_bin_header_lut = {
 ''' name of the attribute: struct code, start, end.  No offset needed'''
 
 class Segy:
-    def __init__(self, filename):
+    def __init__(self, filename, swap_byte_order=False):
+
+        self.swap_byte_order = swap_byte_order # For bad venders
+
+        self.filename = filename
         tmpFile = file(filename,'r+')
         self.size = os.path.getsize(filename)
         self.data = mmap.mmap(tmpFile.fileno(),self.size,access=mmap.ACCESS_READ)
@@ -336,6 +364,8 @@ class Segy:
         #self.hdr = {}
         for name in segy_bin_header_lut:
             struct_code,start,end = segy_bin_header_lut[name]
+            if swap_byte_order:
+                struct_code = '<'+struct_code[1:]
             val = struct.unpack(struct_code,self.data[start:end])[0]
             self.__dict__[name] = val
 
@@ -347,18 +377,37 @@ class Segy:
 
         self.trace_start = file_pos
 
+        # HACK for ODEC bad byte order
+        if self.sample_format not in data_formats_description:
+            hdr_tbl = segy_bin_header_lut['sample_format']
+            fmt = struct.unpack('<h',self.data[hdr_tbl[1]:hdr_tbl[2]])[0]
+            if fmt in data_formats_description:
+                self.sample_format = fmt
+                #sys.stderr.write('WARNING: vendor byte order problem with sample_format')
+                raise SegyError('Bad byte order file: this is not compliant SEGY.  Consider trying swapped byte order')
+            else:
+                raise SegyError('Bad sample_format of %s (or %s if bad byte order)' % (self.sample_format, fmt))
+
+    def __unicode__(self):
+        fmtnum = self.sample_format
+        
+        return os.path.basename('%s %s' % (self.filename,fmtnum))
+
+    def __str__(self):
+        return self.__unicode__()
+
     def trace_metadata(self):
         x_min=None
         x_max=None
         y_min=None
         y_max=None
         t_min=None
-        for t in self:
+        for tracecount,t in enumerate(self):
             if not t_min: t_min = t.datetime()
             x,y = t.position_geographic()
             if not x_min or x<x_min: x_min = x
             if not x_max or x>x_max: x_max = x
-
+            
             if not y_min or y<y_min: y_min = y
             if not y_max or y>y_max: y_max = y
 

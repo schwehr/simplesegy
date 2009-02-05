@@ -22,7 +22,8 @@ Fill in a metadata template
 
 import os
 import Cheetah.Template 
-from . import segy  # Added in python 2.5
+#from . import segy  # Added in python 2.5
+from simplesegy import segy
 
 def main():
     '''
@@ -44,7 +45,7 @@ def main():
         filesize = os.path.getsize(filename) / 1000000. # Make it MB
 
         #sgy = simplesegy.segy.Segy(filename)
-        sgy = segy.Segy(filename)
+        sgy = segy.Segy(os.path.basename(filename))
         (x_min,y_min),(x_max,y_max),(t_min,t_max) = sgy.trace_metadata()
 
         line_info = {
@@ -75,7 +76,3 @@ def main():
                                                   ]
                                       )
         open(outfile,'w').write(str(t)) # "Render" the template to a file
-
-
-#if __name__ == '__main__':
-#    main()
