@@ -192,13 +192,37 @@ class Trace:
     @todo: make these delayed decodes as most will never be used
     '''
 
+    def __init__(self,data,sample_format=3,data_offset=0, swap_byte_order=False, trace_trailer_size=0):
+        '''
+        @param trace_trailer_size: hack for ODEC
+        '''
+        offset = self.offset = data_offset
+
+        self.swap_byte_order = swap_byte_order
+
+        self.sample_format=sample_format
+        self.sample_size = data_format_bytes_per_sample[sample_format]
+
+        # have to prefetch this one attribute
+        if swap_byte_order:
+            print 'swap byte order'
+            self.trace_samples = struct.unpack('<h',data[offset+114:offset+116])[0]
+        else:
+            self.trace_samples = struct.unpack('>h',data[offset+114:offset+116])[0]
+
+        print 'FIX: trace_samples',self.trace_samples
+
+        self.size = self.sample_size * self.trace_samples + 240 + trace_trailer_size # 240 For binary header
+        self.data = data
+
     def __len__(self):
+        'Number of bytes, NOT the number of samples.'
         return self.size
 
     def __getattr__(self,name):
         if name=='samples':
-            if self.sample_type in data_format_struct:
-                code = data_format_struct[self.sample_type]
+            if self.sample_format in data_format_struct:
+                code = data_format_struct[self.sample_format]
                 base = self.offset+240
                 end = base + self.sample_size * self.trace_samples
                 endian = '>'
@@ -211,10 +235,19 @@ class Trace:
             struct_code,start,end = trace_field_lut[name]
             if self.swap_byte_order:
                 struct_code = '<' + struct_code[1:]
-            print 'FIX',self.swap_byte_order, trace_field_lut[name], '->',struct_code
+            #print 'FIX',self.swap_byte_order, trace_field_lut[name], '->',struct_code
             val = struct.unpack(struct_code,self.data[self.offset+start:end+self.offset])[0]
             self.__dict__[name] = val
             return val
+
+        #
+        # Special aggregate names
+        # 
+        if name == 'pos':
+            return self.position_geographic()
+        if name == 'time':
+            return self.datetime()
+
         raise AttributeError(name)
 
     def datetime(self):
@@ -224,28 +257,6 @@ class Trace:
         julian_day = self.day
         t = time.strptime('%4d%03d' % (self.year,julian_day),'%Y%j')
         return datetime.datetime(self.year,t.tm_mon,t.tm_mday,self.hour,self.min,self.sec)
-
-
-    def __init__(self,data,sample_type=3,data_offset=0, swap_byte_order=False):
-        #hdr = {}
-        offset = self.offset = data_offset
-
-        self.swap_byte_order = swap_byte_order
-
-        self.sample_type=sample_type
-        self.sample_size = data_format_bytes_per_sample[sample_type]
-
-        # have to prefetch this one attribute
-        if swap_byte_order:
-            print 'swap byte order'
-            self.trace_samples = struct.unpack('<h',data[offset+114:offset+116])[0]
-        else:
-            self.trace_samples = struct.unpack('>h',data[offset+114:offset+116])[0]
-
-        print 'trace_samples',self.trace_samples
-
-        self.size = self.sample_size * self.trace_samples + 240 # 240 For binary header
-        self.data = data
 
     def position_raw(self):
         return self.x,self.y
@@ -269,7 +280,7 @@ class SegyIterator:
         self.cur_pos = segy.trace_start
         self.size = segy.size
         self.data = segy.data
-        self.sample_type = segy.sample_format
+        self.sample_format = segy.sample_format
 
         self.trace_count=0
 
@@ -281,7 +292,7 @@ class SegyIterator:
     def __next__(self):
         if self.cur_pos > self.size-1:
             raise StopIteration
-        trace = Trace(self.data,self.sample_type,self.cur_pos,swap_byte_order=self.swap_byte_order)
+        trace = Trace(self.data,self.sample_format,self.cur_pos,swap_byte_order=self.swap_byte_order)
 
         self.cur_pos += len(trace)
         self. trace_count += 1
@@ -350,8 +361,11 @@ segy_bin_header_lut = {
 ''' name of the attribute: struct code, start, end.  No offset needed'''
 
 class Segy:
-    def __init__(self, filename, swap_byte_order=False):
-
+    def __init__(self, filename, swap_byte_order=False, trace_trailer_size=0):
+        '''
+        @param trace_trailer: bytes at the end of each trace.  This is for ODEC (which uses 320) and is not standard SEGY
+        @param swap_byte_order: ODEC uses the wrong byte order
+        '''
         self.swap_byte_order = swap_byte_order # For bad venders
 
         self.filename = filename
@@ -359,6 +373,8 @@ class Segy:
         self.size = os.path.getsize(filename)
         self.data = mmap.mmap(tmpFile.fileno(),self.size,access=mmap.ACCESS_READ)
         data = self.data
+        self.trace_trailer_size = trace_trailer_size
+        self.trace_indices = [] # Lookup table of trace headers
 
         self.hdr_text = decode_text(data[0:3200]) # Initial ASCII or EBCDIC header
 
@@ -370,6 +386,8 @@ class Segy:
                 struct_code = '<'+struct_code[1:]
             val = struct.unpack(struct_code,self.data[start:end])[0]
             self.__dict__[name] = val
+
+        self.sample_size = data_format_bytes_per_sample[self.sample_format]
 
         file_pos = 3600
         self.extended_text_hdrs = []
@@ -389,6 +407,37 @@ class Segy:
                 raise SegyError('Bad byte order file: this is not compliant SEGY.  Consider trying swapped byte order')
             else:
                 raise SegyError('Bad sample_format of %s (or %s if bad byte order)' % (self.sample_format, fmt))
+
+
+    def __len__(self):
+        pass
+
+    def __getitem__(self, key):
+        if not isinstance(key,int):
+            raise AttributeError(key)
+
+        print 'fixed_len_trace_flag',self.fixed_len_trace_flag
+        if self.fixed_len_trace_flag==1:
+            # Yes, fixed length traces - easy case
+            print 'FIX: yes, fixed length'
+            trace_size = self.samples_per_trace*self.sample_size + 400 + self.trace_trailer_size
+            start = self.trace_start + ( trace_size * key)
+            return Trace(self.data, self.sample_format, start, swap_byte_order=self.swap_byte_order, trace_trailer_size = self.trace_trailer_size)
+        else:
+            # Variable length: we have to look at each trace - more work
+            print 'FIX: variable length'
+            if len(self.trace_indices) == 0:
+                self.trace_indices.append(self.trace_start)
+            if key < len(self.trace_indices):
+                return Trace(self.data, self.sample_format, self.trace_indices[key], swap_byte_order=self.swap_byte_order, trace_trailer_size = self.trace_trailer_size)
+            cur = len(self.trace_indices)-1
+            while (cur < key):
+                trace = Trace(self.data, self.sample_format, self.trace_indices[cur], swap_byte_order=self.swap_byte_order, trace_trailer_size = self.trace_trailer_size)
+                cur += 1
+                self.trace_indices[cur] = self.trace_indices[cur-1] + len(trace)
+                if cur == key: 
+                    return trace
+
 
     def __unicode__(self):
         fmtnum = self.sample_format
