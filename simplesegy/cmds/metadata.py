@@ -25,6 +25,9 @@ import Cheetah.Template
 #from . import segy  # Added in python 2.5
 from simplesegy import segy
 
+#from . import segy  # Added in python 2.5
+import simplesegy.segy as segy
+
 def main():
     '''
     command line interface for templating 

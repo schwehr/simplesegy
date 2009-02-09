@@ -25,6 +25,8 @@ import datetime
 import time
 import codecs
 
+from simplesegy.utils.debugging import checkpoint
+
 class SegyError(Exception):
     def __init__(self,msg):
         self.msg = msg
@@ -402,7 +404,12 @@ class Segy:
         y_min=None
         y_max=None
         t_min=None
+
+        #checkpoint(); print 'FIX: remove',type(self)
+
+        #for t in self:
         for tracecount,t in enumerate(self):
+
             if not t_min: t_min = t.datetime()
             x,y = t.position_geographic()
             if not x_min or x<x_min: x_min = x

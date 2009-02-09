@@ -1,4 +1,5 @@
 
       [console_scripts]
-      segy-metadata = simplesegy.metadata:main
+      segy-metadata = simplesegy.cmds.metadata:main
+      segy-info = simplesegy.cmds.info:main
       
