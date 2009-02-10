@@ -100,6 +100,7 @@ trace_field_lut = {
         'water_depth_src':('>i',60,64),
         'water_depth_grp':('>i',64,68),
         'scaler_elev_depth':('>h',68,70),
+
         'scaler_coord':('>h',70,72),
         'x':('>i',72,76),
         'y':('>i',76,80),
@@ -141,10 +142,12 @@ trace_field_lut = {
         'alias_filt_slope':('>h',142,144),
         'notch_filt_freq':('>h',144,146),
         'notch_filt_slope':('>h',146,148),
+
         'low_cut_freq':('>h',148,150),
         'high_cut_freq':('>h',150,152),
-        'low_cut_slope':('>h',154,154),
+        'low_cut_slope':('>h',152,154),
         'high_cut_slope':('>h',154,156),
+
         'year':('>h',156,158),
         'day':('>h',158,160),
         'hour':('>h',160,162),
@@ -202,17 +205,18 @@ class Trace:
 
         self.sample_format=sample_format
         self.sample_size = data_format_bytes_per_sample[sample_format]
+        self.trace_trailer_size = trace_trailer_size
 
         # have to prefetch this one attribute
         if swap_byte_order:
-            print 'swap byte order'
+            #print 'swap byte order'
             self.trace_samples = struct.unpack('<h',data[offset+114:offset+116])[0]
         else:
             self.trace_samples = struct.unpack('>h',data[offset+114:offset+116])[0]
 
-        print 'FIX: trace_samples',self.trace_samples
 
         self.size = self.sample_size * self.trace_samples + 240 + trace_trailer_size # 240 For binary header
+        #print 'FIX: trace_samples', self.sample_size,self.trace_samples,240,self.trace_trailer_size, '->',self.size
         self.data = data
 
     def __len__(self):
@@ -234,7 +238,9 @@ class Trace:
         if name in trace_field_lut:
             struct_code,start,end = trace_field_lut[name]
             if self.swap_byte_order:
+                #print 'unswapped:', name, struct.unpack(struct_code,self.data[self.offset+start:end+self.offset])[0],
                 struct_code = '<' + struct_code[1:]
+                #print '    ->:', struct.unpack(struct_code,self.data[self.offset+start:end+self.offset])[0]
             #print 'FIX',self.swap_byte_order, trace_field_lut[name], '->',struct_code
             val = struct.unpack(struct_code,self.data[self.offset+start:end+self.offset])[0]
             self.__dict__[name] = val
@@ -266,11 +272,28 @@ class Trace:
         I think the knudsen positions of dividing by 3600000 is not correct for the coord_units
         @bug: this will fail near 0,0
         @todo: pay attention to coord_units'''
-        x = self.x / 3600.
-        y = self.y / 3600.
-        if abs(x) > 180 or abs(y)>90:
-            x /= 1000.
-            y /= 1000.
+        scalar = self.scaler_coord
+        units = self.coord_units
+        x = self.x
+        y = self.y
+        print 'pos_geo',scalar,units,x,y
+
+        # 1 = Length (meters or feet)
+        if units==2: # Seconds of arc
+            x /= 3600.
+            y /= 3600.
+            if scalar>0: # Multiplier
+                x *= scalar
+                y *= scalar
+            if scalar<0: # Divisor
+                scalar = abs(scalar)
+                x /= scalar
+                y /= scalar
+        #elif units==3: # Decimal degrees
+        #elif units==4: # Degrees, minutes, seconds
+        else:
+            raise SegyError('Invalide or unsupported coordinate units: %d' % units)
+
         return  x,y
 
 class SegyIterator:
@@ -281,7 +304,7 @@ class SegyIterator:
         self.size = segy.size
         self.data = segy.data
         self.sample_format = segy.sample_format
-
+        self.trace_trailer_size = segy.trace_trailer_size # ODEC hack
         self.trace_count=0
 
         self.swap_byte_order = segy.swap_byte_order
@@ -292,7 +315,10 @@ class SegyIterator:
     def __next__(self):
         if self.cur_pos > self.size-1:
             raise StopIteration
-        trace = Trace(self.data,self.sample_format,self.cur_pos,swap_byte_order=self.swap_byte_order)
+        trace = Trace(self.data,
+                      self.sample_format,
+                      self.cur_pos,swap_byte_order = self.swap_byte_order, 
+                      trace_trailer_size = self.trace_trailer_size)
 
         self.cur_pos += len(trace)
         self. trace_count += 1

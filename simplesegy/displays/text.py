@@ -56,13 +56,16 @@ def convert(out, sgy,
 
         if len(trace_fields)==0:
             # Dump them all
-            #print 'FIX: segy.trace_field_lut', segy.trace_field_lut
             for field in segy.trace_field_lut:
-                print 'field:', field
                 out.write('%s = %s\n' % (field,t.__getattr__(field)))
         else:
+            if v:
+                out.write('# ')
+                for field in trace_fields:
+                    out.write('%s,' % field)
+                out.write('\n')
             for field in trace_fields:
-                out.write('%s = %s\n' % (field,t.__dict__[field]))
+                out.write('%s = %s\n' % (field,t.__getattr__(field)))
 
     if all_traces:
         # Use a more compact format
@@ -70,13 +73,13 @@ def convert(out, sgy,
             for i,t in enumerate(sgy):
                 out.write('5%d:' % i)
                 for field in segy.trace_field_lut:
-                    out.write('%s, ' % (field,t.__dict__[field]))
+                    out.write('%s, ' % t.__getattr__(field))
                 out.write('\n')
          else:
              for i,t in enumerate(sgy):
-                 out.write('5%d:' % i)
+                 out.write('5%d: ' % i)
                  for field in trace_fields:
-                     out.write('%s, ' % (t.__dict__[field]))
+                     out.write('%s, ' % (t.__getattr__(field),) )
                  out.write('\n')
 
             

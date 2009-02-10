@@ -57,7 +57,8 @@ def main():
                       action='append',
                       help='What fields to list for an all traces heading.  Sugegest "pos" and "time" [default: %default]')
 
-    parser.add_option('-T', '--trace-trailer-size', dest='trace_trailer_size', default=0, 
+    parser.add_option('-T', '--trace-trailer-size', dest='trace_trailer_size', default=0,
+                      type='int',
                       help='If vendors put in extra data after each trace (ODEC needs 320) [default: %default]')
 
     parser.add_option('-B', '--byte-swap', dest='swap_byte_order', default=False, action='store_true',
