@@ -23,7 +23,10 @@ import os, sys
 import simplesegy.segy as segy
 
 # FIX: make this discoverable pluging
-from simplesegy.displays import text
+from simplesegy.displays import text,kml
+
+# FIX: do this plugin style
+formats = ('text','kml')
 
 def main():
     '''
@@ -34,7 +37,9 @@ def main():
                           version="%prog "+__version__+' ('+__date__+')')
 
     parser.add_option('-f', '--format', dest='format', default='text',
-                      help='print the text header')
+                      type = 'choice',
+                      choices = formats,
+                      help = 'output format.  One of ' + ', '.join(formats) + ' [default: %default]')
 
 #    parser.add_option('--summary', dest='summary', default=False, action='store_true',
 #                      help='Summary data including bounding box, bounding time, and traces')
@@ -44,7 +49,7 @@ def main():
                       help='print the text header')
 
     parser.add_option('-b', '--bin-header', dest='bin_header', default=False, action='store_true',
-                      help='print the text header')
+                      help='print the bin header')
 
     parser.add_option('-n','--trace-num',dest='trace_num',default=None,
                       type='int',
@@ -88,6 +93,14 @@ def main():
                          trace_num=o.trace_num,
                          verbose=v
                          )
-            #if o.trace is not None:
-            #    print 'TRACE:'
-                          
+        elif 'kml'==o.format:
+            
+            out = sys.stdout
+            kml.convert(out, sgy, 
+                         text_header=o.text_header,
+                         bin_header=o.bin_header,
+                         all_traces=o.all_traces,
+                         trace_fields=o.trace_fields,
+                         trace_num=o.trace_num,
+                         verbose=v
+                         )            
