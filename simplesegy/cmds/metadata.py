@@ -23,7 +23,7 @@ Fill in a metadata template
 import os
 import Cheetah.Template 
 #from . import segy  # Added in python 2.5
-from simplesegy import segy
+#from simplesegy import segy
 
 #from . import segy  # Added in python 2.5
 import simplesegy.segy as segy
@@ -38,17 +38,27 @@ def main():
     parser.add_option('-t', '--template', dest='template', default=None,
                       help='Cheetah template to fill in')
 
+    parser.add_option('-T', '--trace-trailer-size', dest='trace_trailer_size', default=0,
+                      type='int',
+                      help='If vendors put in extra data after each trace (ODEC needs 320) [default: %default]')
+
+    parser.add_option('-B', '--byte-swap', dest='swap_byte_order', default=False, action='store_true',
+                      help='Use this for files that have their byte order wrong (e.g. ODEC)')
+
+
     parser.add_option('-v', '--verbose', dest='verbose', default=False, action='store_true',
                       help='run the tests run in verbose mode')
 
     (options, args) = parser.parse_args()
-    v = options.verbose
+    o = options
+    v = o.verbose
 
     for filename in args:
         filesize = os.path.getsize(filename) / 1000000. # Make it MB
 
-        #sgy = simplesegy.segy.Segy(filename)
-        sgy = segy.Segy(os.path.basename(filename))
+        sgy = segy.Segy(filename, swap_byte_order=o.swap_byte_order, trace_trailer_size=o.trace_trailer_size)
+        sgy.filename = os.path.basename(filename)  # Drop the results in the current directory
+
         (x_min,y_min),(x_max,y_max),(t_min,t_max) = sgy.trace_metadata()
 
         line_info = {

@@ -1,0 +1,16 @@
+Thanks to Paul Henkart for helping me understand the ODEC format.
+
+ODEC .dat files are SEG-Y like files.  They use coordinate unites 3,
+but set the field to 0.  The x and y are IEEE float numbers.  All byte
+orders are backwards.  Each trace has a trailer of 320 bytes.  I don't
+have info on what is in those bytes.
+
+The text header is EBCDIC format.
+
+To read the format, you need to add these options for byte swapping and trace trailer:
+
+-B -T 320
+
+e.g.
+
+segy-info -t -b -B -T 320 y1104-02.dat 
