@@ -195,12 +195,16 @@ class Trace:
     @todo: make these delayed decodes as most will never be used
     '''
 
-    def __init__(self,data,sample_format=3,data_offset=0, swap_byte_order=False, trace_trailer_size=0):
+    def __init__(self,data,
+                 sample_format=3,data_offset=0, 
+                 swap_byte_order=False, 
+                 trace_trailer_size=0, 
+                 verbose=False):
         '''
         @param trace_trailer_size: hack for ODEC
         '''
         offset = self.offset = data_offset
-
+        self.verbose = verbose
         self.swap_byte_order = swap_byte_order
 
         self.sample_format=sample_format
@@ -276,10 +280,16 @@ class Trace:
         units = self.coord_units
         x = self.x
         y = self.y
-        print 'pos_geo',scalar,units,x,y
+        #print 'pos_geo',scalar,units,x,y
 
-        # 1 = Length (meters or feet)
-        if units==2: # Seconds of arc
+        # FIX: is this the right thing to do?
+        if units==0:
+            if self.verbose: sys.stderr.write('forcing units to 3 for a 0\n')
+            units=3
+
+        if units==1: # Length (meters or feet)
+            pass # Nothing to do
+        elif units==2: # Seconds of arc
             x /= 3600.
             y /= 3600.
             if scalar>0: # Multiplier
@@ -289,8 +299,22 @@ class Trace:
                 scalar = abs(scalar)
                 x /= scalar
                 y /= scalar
-        #elif units==3: # Decimal degrees
-        #elif units==4: # Degrees, minutes, seconds
+        elif units==3: # Decimal degrees - FIX: is this always a float or just for ODEC?
+            if self.swap_byte_order:
+                fmt = '<2f'
+            else:
+                fmt = '>2f'
+            x,y = struct.unpack(fmt,self.data[self.offset+72:self.offset+80])
+            if scalar>0: # Multiplier
+                x *= scalar
+                y *= scalar
+            if scalar<0: # Divisor
+                scalar = abs(scalar)
+                x /= scalar
+                y /= scalar
+        elif units==4: # Degrees, minutes, seconds
+            print 'units 4 debugging.  incoming values: ',x,y,scalar
+            assert False
         else:
             raise SegyError('Invalide or unsupported coordinate units: %d' % units)
 
