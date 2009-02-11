@@ -23,6 +23,7 @@ convert a Segy object to a text representation.  Fancier than just __str__ and _
 import simplesegy.segy as segy
 
 def convert(out, sgy, 
+            summary = False,
             text_header=False,
             bin_header=False, 
             all_traces=False,
@@ -34,6 +35,13 @@ def convert(out, sgy,
     @segy: Segy instance
     '''
     v = verbose
+
+    if summary:
+        if v:
+            out.write('[summary]')
+        metadata = sgy.trace_metadata()
+        # FIX: pretty up!
+        out.write('%s\n' % str(metadata))
 
     if text_header:
         if v:

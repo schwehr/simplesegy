@@ -1,9 +1,13 @@
 Thanks to Paul Henkart for helping me understand the ODEC format.
 
-ODEC .dat files are SEG-Y like files.  They use coordinate unites 3,
+ODEC .dat files are SEG-Y like files.  They use coordinate units 3,
 but set the field to 0.  The x and y are IEEE float numbers.  All byte
 orders are backwards.  Each trace has a trailer of 320 bytes.  I don't
-have info on what is in those bytes.
+have info on what is in those bytes.  There appears to be some other
+sort of data between traces in some ODEC files.  Both simplesegy and sioseis
+do not read past whatever it is.  Sonarweb does read the file.
+
+Example trouble file: y0902-01.dat.bz2
 
 The text header is EBCDIC format.
 

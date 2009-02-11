@@ -20,7 +20,8 @@ Fill in a metadata template
 @organization: U{CCOM<http://ccom.unh.edu/>} 
 '''
 
-import os
+import traceback
+import os,sys
 import Cheetah.Template 
 #from . import segy  # Added in python 2.5
 #from simplesegy import segy
@@ -45,7 +46,6 @@ def main():
     parser.add_option('-B', '--byte-swap', dest='swap_byte_order', default=False, action='store_true',
                       help='Use this for files that have their byte order wrong (e.g. ODEC)')
 
-
     parser.add_option('-v', '--verbose', dest='verbose', default=False, action='store_true',
                       help='run the tests run in verbose mode')
 
@@ -56,24 +56,29 @@ def main():
     for filename in args:
         filesize = os.path.getsize(filename) / 1000000. # Make it MB
 
-        sgy = segy.Segy(filename, swap_byte_order=o.swap_byte_order, trace_trailer_size=o.trace_trailer_size)
-        sgy.filename = os.path.basename(filename)  # Drop the results in the current directory
+        outfile = os.path.basename(filename)+'.metadata.txt'
 
-        (x_min,y_min),(x_max,y_max),(t_min,t_max) = sgy.trace_metadata()
-
-        line_info = {
-            'datetime_min':t_min,
-            'datetime_max':t_max,
-            'x_min':x_min,
-            'x_max':x_max,
-            'y_min':y_min,
-            'y_max':y_max,
-            }
-
-        outfile = filename+'.metadata.txt'
         if v:
-            print '''
-            file: {infile} -> {outfile}
+            print 'file: {infile} -> {outfile}'.format(infile=filename,outfile=outfile)
+
+        try:
+            sgy = segy.Segy(filename, swap_byte_order=o.swap_byte_order, trace_trailer_size=o.trace_trailer_size)
+            sgy.filename = os.path.basename(filename)  # Drop the results in the current directory
+            filename = os.path.basename(filename)  # Drop the results in the current directory
+
+            (x_min,y_min),(x_max,y_max),(t_min,t_max) = sgy.trace_metadata()
+
+            line_info = {
+                'datetime_min':t_min,
+                'datetime_max':t_max,
+                'x_min':x_min,
+                'x_max':x_max,
+                'y_min':y_min,
+                'y_max':y_max,
+                }
+
+            if v:
+                print '''
     datetime_min: {datetime_min}
     datetime_max: {datetime_max}
            x_min: {x_min}
@@ -81,11 +86,18 @@ def main():
            y_min: {y_min}
            y_max: {y_max}'''.format(infile=filename,outfile=outfile,**line_info)
 
-        template=open(options.template).read()
-        t = Cheetah.Template.Template(template,
-                                      searchList=[line_info,
-                                                  {'filename':filename,
-                                                   'filesize':filesize}
-                                                  ]
-                                      )
-        open(outfile,'w').write(str(t)) # "Render" the template to a file
+                template=open(options.template).read()
+                t = Cheetah.Template.Template(template,
+                                              searchList=[line_info,
+                                                          {'filename':filename,
+                                                           'filesize':filesize}
+                                                          ]
+                                              )
+                open(outfile,'w').write(str(t)) # "Render" the template to a file
+        except Exception, e:
+            sys.stderr.write('    Exception:' + str(type(Exception))+'\n')
+            sys.stderr.write('    Exception args:'+ str(e)+'\n')
+            traceback.print_exc(file=sys.stderr)
+            sys.stderr.write('BAD file: %s\n' % filename)
+            o = file(outfile+'.bad','w')
+            o.write('BAD file: %s\n' % filename)

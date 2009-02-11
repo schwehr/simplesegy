@@ -18,6 +18,7 @@ Read SEG-Y Rev 0 and 1.  Partially derived from Kurt Schwehr's segy-py / seismic
 '''
 
 import sys
+import traceback
 import os
 import mmap   # load the file into memory directly so it looks like a big array
 import struct # Unpacking of binary data
@@ -32,6 +33,9 @@ class SegyError(Exception):
         self.msg = msg
     def __str__(self):
         return repr(self.msg)
+
+class SegyTraceError(SegyError):
+    pass
 
 data_formats_description = {
     1: "4-byte IBM floating point",
@@ -213,14 +217,18 @@ class Trace:
 
         # have to prefetch this one attribute
         if swap_byte_order:
-            #print 'swap byte order'
             self.trace_samples = struct.unpack('<h',data[offset+114:offset+116])[0]
         else:
             self.trace_samples = struct.unpack('>h',data[offset+114:offset+116])[0]
 
+        if self.trace_samples < 0:
+            raise SegyTraceError('Bad trace length.  Corrupt file?')
 
         self.size = self.sample_size * self.trace_samples + 240 + trace_trailer_size # 240 For binary header
+
         #print 'FIX: trace_samples', self.sample_size,self.trace_samples,240,self.trace_trailer_size, '->',self.size
+        
+
         self.data = data
 
     def __len__(self):
@@ -265,7 +273,7 @@ class Trace:
         @todo: factor in time basis
         '''
         julian_day = self.day
-        t = time.strptime('%4d%03d' % (self.year,julian_day),'%Y%j')
+        t = time.strptime('%4d %03d' % (self.year,julian_day),'%Y %j')
         return datetime.datetime(self.year,t.tm_mon,t.tm_mday,self.hour,self.min,self.sec)
 
     def position_raw(self):
@@ -282,10 +290,19 @@ class Trace:
         y = self.y
         #print 'pos_geo',scalar,units,x,y
 
+        if scalar not in (-10000, -1000, -100, -10, 0 , 10, 100, 1000, 10000):
+            raise SegyTraceError('Invalid scalar of %d' % scalar)
+
         # FIX: is this the right thing to do?
+        if units>4:
+            sys.stderr.write('forcing units to 3 for %s.  Is this odd odec?\n'% units)
+            units=3
+
         if units==0:
             if self.verbose: sys.stderr.write('forcing units to 3 for a 0\n')
             units=3
+
+        #print 'FIX: units',units
 
         if units==1: # Length (meters or feet)
             pass # Nothing to do
@@ -315,8 +332,8 @@ class Trace:
         elif units==4: # Degrees, minutes, seconds
             print 'units 4 debugging.  incoming values: ',x,y,scalar
             assert False
-        else:
-            raise SegyError('Invalide or unsupported coordinate units: %d' % units)
+        #else:
+        #    raise SegyError('Invalide or unsupported coordinate units: %d' % units)
 
         return  x,y
 
@@ -507,17 +524,25 @@ class Segy:
         #checkpoint(); print 'FIX: remove',type(self)
 
         #for t in self:
-        for tracecount,t in enumerate(self):
+        try:
+            for tracecount,t in enumerate(self):
 
-            if not t_min: t_min = t.datetime()
-            x,y = t.position_geographic()
-            if not x_min or x<x_min: x_min = x
-            if not x_max or x>x_max: x_max = x
+                if not t_min: t_min = t.datetime()
+                x,y = t.position_geographic()
+                if not x_min or x<x_min: x_min = x
+                if not x_max or x>x_max: x_max = x
             
-            if not y_min or y<y_min: y_min = y
-            if not y_max or y>y_max: y_max = y
+                if not y_min or y<y_min: y_min = y
+                if not y_max or y>y_max: y_max = y
 
-        t_max = t.datetime()
+                t_max = t.datetime()
+        except SegyTraceError, e:
+            sys.stderr.write('    Exception:' + str(type(Exception))+'\n')
+            sys.stderr.write('    Exception args:'+ str(e)+'\n')
+        except ValueError, e:
+            sys.stderr.write('    Exception:' + str(type(Exception))+'\n')
+            sys.stderr.write('    Exception args:'+ str(e)+'\n')
+        
         return (x_min,y_min),(x_max,y_max),(t_min,t_max)
 
     def __iter__(self):

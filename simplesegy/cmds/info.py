@@ -41,8 +41,8 @@ def main():
                       choices = formats,
                       help = 'output format.  One of ' + ', '.join(formats) + ' [default: %default]')
 
-#    parser.add_option('--summary', dest='summary', default=False, action='store_true',
-#                      help='Summary data including bounding box, bounding time, and traces')
+    parser.add_option('-s','--summary', dest='summary', default=False, action='store_true',
+                      help='Summary data including bounding box, bounding time, and traces')
 
     
     parser.add_option('-t', '--text-header', dest='text_header', default=False, action='store_true',
@@ -85,7 +85,8 @@ def main():
         # FIX: turn this into something plugable
         if o.format=='text':
             out = sys.stdout
-            text.convert(out, sgy, 
+            text.convert(out, sgy,
+                         summary=o.summary,
                          text_header=o.text_header,
                          bin_header=o.bin_header,
                          all_traces=o.all_traces,
@@ -97,6 +98,7 @@ def main():
             
             out = sys.stdout
             kml.convert(out, sgy, 
+                         summary=o.summary,
                          text_header=o.text_header,
                          bin_header=o.bin_header,
                          all_traces=o.all_traces,

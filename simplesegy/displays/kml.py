@@ -90,22 +90,30 @@ def addStyle(out,lineColor='a0a0a0',polyColor="808080",polyOpacity=.25,lineOpaci
 
 def track_line(out,sgy,name,indent='    '):
     last=None
-    for trace in sgy:
-        if not last:
-            last = trace
-            continue
-        start = last.position_geographic()
-        end = trace.position_geographic()
+    try:
+        for trace in sgy:
+            if not last:
+                last = trace
+                continue
+            x1,y1 = last.position_geographic()
+            x2,y2 = trace.position_geographic()
 
-        out.write('<Placemark>\n')
+            out.write('<Placemark>\n')
         #if options.withStyle: print '<styleUrl>#'+options.styleName+'</styleUrl>'
-        out.write('<LineString><coordinates>'+str(start[0])+','+str(start[1])+',10 '+str(end[0])+','+str(end[1])+',10</coordinates></LineString>\n')
-        #out.write('<TimeSpan><begin>'+timeSec2KmlTime(_t)+'</begin><end>'+timeSec2KmlTime(t)+'</end></TimeSpan>'
-        out.write('</Placemark>\n')
-        last = trace
 
+#            out.write('<LineString><coordinates>'+str(start[0])+','+str(start[1])+',10 '+str(end[0])+','+str(end[1])+',10</coordinates></LineString>\n')
+            sys.stderr.write('%f, %f, %f, %f\n' % (x1,y1,x2,y2))
+            out.write('<LineString><coordinates>%.5f,%.5f,10 %.5f,%.5f,10</coordinates></LineString>\n' % (x1,y1,x2,y2))
+
+
+        #out.write('<TimeSpan><begin>'+timeSec2KmlTime(_t)+'</begin><end>'+timeSec2KmlTime(t)+'</end></TimeSpan>'
+            out.write('</Placemark>\n')
+            last = trace
+    except segy.SegyTraceError,e:
+        sys.stderr.write('    Exception: %s\n' %  str(e))
 
 def convert(out, sgy, 
+            summary=False,
             text_header=False,
             bin_header=False, 
             all_traces=False,
