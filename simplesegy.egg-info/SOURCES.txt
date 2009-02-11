@@ -5,6 +5,7 @@ VERSION
 setup.cfg
 setup.py
 docs/blank.metadata.tmpl
+docs/system-notes/odec.txt
 simplesegy/__init__.py
 simplesegy/segy.py
 simplesegy.egg-info/PKG-INFO
