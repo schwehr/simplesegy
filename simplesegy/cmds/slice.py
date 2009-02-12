@@ -26,46 +26,51 @@ import os,sys
 import simplesegy.segy as segy
 
 
-def slice(sgy,outfile, force_ascii=False, start_trace=0, end_trace=None, verbose=False):
-        v = verbose
-        out = file(outfile,'wb')
+def slice(sgy, outfile, force_ascii=False, start_trace=0, end_trace=None, verbose=False):
+    v = verbose
+    out = file(outfile,'wb')
 
-        # Text header
-        if force_ascii:
-            out.write(sgy.hdr_text)
-        else:
-            out.write(sgy.data[0:3200])
+    # Text header
+    if force_ascii:
+        out.write(sgy.hdr_text)
+    else:
+        out.write(sgy.data[0:3200])
 
-        # Binary header
-        out.write(sgy.data[3200:3200+400])
+    # Binary header
+    out.write(sgy.data[3200:3200+400])
 
-        # Extended text headers
-        if force_ascii:
-            for text in sgy.extended_text_hdrs:
-                out.write(text)
-        else:
-            if 0 < len(sgy.extended_text_hdrs):
-                out.write(sgy.data[3201+400:sgy.trace_start])
+    # Extended text headers
+    if force_ascii:
+        for text in sgy.extended_text_hdrs:
+            out.write(text)
+    else:
+        if 0 < len(sgy.extended_text_hdrs):
+            out.write(sgy.data[3201+400:sgy.trace_start])
 
-        if 0 > start_trace or 0 > end_trace:
-            sys.exit('ERROR: trace indices relative to the end not yet implemented')
+    #
+    # Copy all the traces
+    # 
 
-        if end_trace is None:
-            for i,trace in enumerate(sgy):
-                if i < start_trace:
-                    continue
-                if i == end_trace:
-                    break
-                out.write(trace.get_trace_data)
+    if 0 > start_trace or 0 > end_trace:
+        sys.exit('ERROR: trace indices relative to the end not yet implemented')
 
-        else:
-            for i in range(start_trace, end_trace):
-                if v and i%100==0:
-                    print 'trace',i
-                print 'FIX: looking up trace',i
-                trace = sgy[i]
+    # FIX: need to clean this up using length so that fixed trace size files go fast
+    if end_trace is None:
+        for i,trace in enumerate(sgy):
+            if i < start_trace:
+                continue
+            if i == end_trace:
+                break
+            out.write(trace.get_trace_data)
 
-                out.write(trace.get_trace_data())
+    else:
+        for i in range(start_trace, end_trace):
+            if v and i%100==0:
+                print 'trace',i
+            print 'FIX: looking up trace',i
+            trace = sgy[i]
+
+            out.write(trace.get_trace_data())
 
 
 def main():
@@ -112,41 +117,5 @@ def main():
 
         slice(sgy, outfile, opt.force_ascii, opt.start_trace, opt.end_trace, verbose=v)
 
-#         out = file(outfile,'wb')
 
-#         # Text header
-#         if opt.force_ascii:
-#             out.write(sgy.hdr_text)
-#         else:
-#             out.write(sgy.data[0:3200])
-
-#         # Binary header
-#         out.write(sgy.data[3201:3201+400])
-
-#         if opt.force_ascii:
-#             for text in sgy.extended_text_hdrs:
-#                 out.write(text)
-#         else:
-#             if 0<len(sgy.extended_txt_hdrs):
-#                 out.write(sgy.data[3201+400:sgy.trace_start])
-
-#         if 0 > opt.start_trace or 0 > opt.end_trace:
-#             sys.exit('ERROR: trace indices relative to the end not yet implemented')
-
-#         if opt.end_trace is None:
-#             for i,trace in enumerate(sgy):
-#                 if i<opt.start_trace:
-#                     continue
-#                 if i==opt.end_trace:
-#                     break
-#                 out.write(trace.get_trace_data)
-
-#         #print opt.start_trace,opt.end_trace,'->',range(opt.start_trace,opt.end_trace)
-#         else:
-#             for i in range(opt.start_trace,opt.end_trace):
-#                 if v and i%100==0:
-#                     print 'trace',i
-#                 trace = sgy[i]
-
-#                 out.write(trace.get_trace_data())
 
