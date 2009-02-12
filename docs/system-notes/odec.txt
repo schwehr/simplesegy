@@ -18,3 +18,42 @@ To read the format, you need to add these options for byte swapping and trace tr
 e.g.
 
 segy-info -t -b -B -T 320 y1104-02.dat 
+
+This may be tre trailer...
+
+struct sRecPreamble {
+char syncMark[4];  /* Record preamble sync mark ASCII "SYNC" */
+short samples;
+short bufferNumber;
+short background;  /* Acoustic background noise level */
+float bottomDepth;  /* Digitized bottom depth in selected units*/
+short trackerStatus;
+long samplesPerPing;
+float ownshipSpeed;  /* Ownship speed in knots */
+short recordedSamples;  /* Number of samples actually recorded this interval */
+short totalSamples;  /* Total samples over all buffers */
+short totalBuffers;  /* Total number of buffers in the ping line */
+short startOffset;
+short segySamples[20];  /* Sample count in each 1-second buffer */
+short segyStart;  /* Offset into playback buffer */
+short segyCount;
+short segyBuffer;  /* Buffer number of playback buffer with bottom in it */
+short resync;
+short month;  /* Date and time */
+short day;
+short year;
+short hour;
+short minute;
+short second;
+short parms[50];  /* System operating parameters */
+short parmChanged[50];
+short sequence;  /* Sequence number for SEG-Y playback */
+unsigned short version;  /* Software revision level integer */
+/* 12 int's were originally allocated for the pad area */
+short echoStrength;
+short echoStrength2;
+short background2;
+float bottomDepth2;
+short bottomLost2;
+short pad[160-154];  /* Unused data area */
+};

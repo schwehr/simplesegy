@@ -46,7 +46,7 @@ def bbox(out,metadata,name,indent='    '):
         'ymax':metadata[1][1]
         }
 
-    sys.stderr.write(str(bounds)+'\n')
+    #sys.stderr.write(str(bounds)+'\n')
     out.write(indent+'<Placemark>\n')
     out.write(indent+'  <name>bbox for %s</name>\n' % name)
     out.write(indent+'  <description><![CDATA[\n')
@@ -102,7 +102,7 @@ def track_line(out,sgy,name,indent='    '):
         #if options.withStyle: print '<styleUrl>#'+options.styleName+'</styleUrl>'
 
 #            out.write('<LineString><coordinates>'+str(start[0])+','+str(start[1])+',10 '+str(end[0])+','+str(end[1])+',10</coordinates></LineString>\n')
-            sys.stderr.write('%f, %f, %f, %f\n' % (x1,y1,x2,y2))
+            #sys.stderr.write('%f, %f, %f, %f\n' % (x1,y1,x2,y2))
             out.write('<LineString><coordinates>%.5f,%.5f,10 %.5f,%.5f,10</coordinates></LineString>\n' % (x1,y1,x2,y2))
 
 

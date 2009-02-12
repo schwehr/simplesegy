@@ -226,10 +226,16 @@ class Trace:
 
         self.size = self.sample_size * self.trace_samples + 240 + trace_trailer_size # 240 For binary header
 
-        #print 'FIX: trace_samples', self.sample_size,self.trace_samples,240,self.trace_trailer_size, '->',self.size
-        
-
         self.data = data
+
+    def get_trace_data(self):
+        return self.data[self.offset:self.offset+self.size]
+
+    def __unicode__(self):
+        return unicode(self.position_geographic())
+
+    def __str__(self):
+        return self.__unicode__()
 
     def __len__(self):
         'Number of bytes, NOT the number of samples.'
@@ -250,10 +256,7 @@ class Trace:
         if name in trace_field_lut:
             struct_code,start,end = trace_field_lut[name]
             if self.swap_byte_order:
-                #print 'unswapped:', name, struct.unpack(struct_code,self.data[self.offset+start:end+self.offset])[0],
                 struct_code = '<' + struct_code[1:]
-                #print '    ->:', struct.unpack(struct_code,self.data[self.offset+start:end+self.offset])[0]
-            #print 'FIX',self.swap_byte_order, trace_field_lut[name], '->',struct_code
             val = struct.unpack(struct_code,self.data[self.offset+start:end+self.offset])[0]
             self.__dict__[name] = val
             return val
@@ -288,12 +291,10 @@ class Trace:
         units = self.coord_units
         x = self.x
         y = self.y
-        #print 'pos_geo',scalar,units,x,y
 
         if scalar not in (-10000, -1000, -100, -10, 0 , 10, 100, 1000, 10000):
             raise SegyTraceError('Invalid scalar of %d' % scalar)
 
-        # FIX: is this the right thing to do?
         if units>4:
             sys.stderr.write('forcing units to 3 for %s.  Is this odd odec?\n'% units)
             units=3
@@ -301,8 +302,6 @@ class Trace:
         if units==0:
             if self.verbose: sys.stderr.write('forcing units to 3 for a 0\n')
             units=3
-
-        #print 'FIX: units',units
 
         if units==1: # Length (meters or feet)
             pass # Nothing to do
@@ -444,7 +443,6 @@ class Segy:
         self.trace_indices = [] # Lookup table of trace headers
 
         self.hdr_text = decode_text(data[0:3200]) # Initial ASCII or EBCDIC header
-
         # Next comes a 400 byte binary header
         #self.hdr = {}
         for name in segy_bin_header_lut:
@@ -477,22 +475,35 @@ class Segy:
 
 
     def __len__(self):
-        pass
+        if 1==self.fixed_len_trace_flag:
+            byte_count = self.size - self.trace_start
+            return byte_count / self.trace_size()
+        for i,trace in enumerate(sgy):
+            pass
+        return i
+            
+    def trace_size(self):
+        'Returns trace size or None if variable length'
+        if self.fixed_len_trace_flag==1:
+            return self.samples_per_trace*self.sample_size + 240 + self.trace_trailer_size
+        elif self.fixed_len_trace_flag==0:
+            return None
+        raise SegyError('Unknown trace size code of %s' % self.fixed_len_trace_flag)
+
+    def is_valid(self):
+        'Test to see if we can tell that this is valid'
+        assert(False)
 
     def __getitem__(self, key):
         if not isinstance(key,int):
             raise AttributeError(key)
 
-        print 'fixed_len_trace_flag',self.fixed_len_trace_flag
         if self.fixed_len_trace_flag==1:
-            # Yes, fixed length traces - easy case
-            print 'FIX: yes, fixed length'
-            trace_size = self.samples_per_trace*self.sample_size + 400 + self.trace_trailer_size
+            trace_size = self.samples_per_trace*self.sample_size + 240 + self.trace_trailer_size
             start = self.trace_start + ( trace_size * key)
             return Trace(self.data, self.sample_format, start, swap_byte_order=self.swap_byte_order, trace_trailer_size = self.trace_trailer_size)
         else:
             # Variable length: we have to look at each trace - more work
-            print 'FIX: variable length'
             if len(self.trace_indices) == 0:
                 self.trace_indices.append(self.trace_start)
             if key < len(self.trace_indices):
@@ -501,7 +512,7 @@ class Segy:
             while (cur < key):
                 trace = Trace(self.data, self.sample_format, self.trace_indices[cur], swap_byte_order=self.swap_byte_order, trace_trailer_size = self.trace_trailer_size)
                 cur += 1
-                self.trace_indices[cur] = self.trace_indices[cur-1] + len(trace)
+                self.trace_indices.append(self.trace_indices[cur-1] + len(trace))
                 if cur == key: 
                     return trace
 
@@ -521,9 +532,6 @@ class Segy:
         y_max=None
         t_min=None
 
-        #checkpoint(); print 'FIX: remove',type(self)
-
-        #for t in self:
         try:
             for tracecount,t in enumerate(self):
 

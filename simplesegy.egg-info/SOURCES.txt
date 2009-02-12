@@ -18,6 +18,7 @@ simplesegy.egg-info/top_level.txt
 simplesegy/cmds/__init__.py
 simplesegy/cmds/info.py
 simplesegy/cmds/metadata.py
+simplesegy/cmds/slice.py
 simplesegy/displays/__init__.py
 simplesegy/displays/kml.py
 simplesegy/displays/text.py

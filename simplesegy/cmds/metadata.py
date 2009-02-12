@@ -86,14 +86,14 @@ def main():
            y_min: {y_min}
            y_max: {y_max}'''.format(infile=filename,outfile=outfile,**line_info)
 
-                template=open(options.template).read()
-                t = Cheetah.Template.Template(template,
+            template=open(options.template).read()
+            t = Cheetah.Template.Template(template,
                                               searchList=[line_info,
                                                           {'filename':filename,
                                                            'filesize':filesize}
                                                           ]
                                               )
-                open(outfile,'w').write(str(t)) # "Render" the template to a file
+            open(outfile,'w').write(str(t)) # "Render" the template to a file
         except Exception, e:
             sys.stderr.write('    Exception:' + str(type(Exception))+'\n')
             sys.stderr.write('    Exception args:'+ str(e)+'\n')
