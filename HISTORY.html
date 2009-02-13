@@ -7,6 +7,17 @@
 <b>simplesegy release history</b>
   <ul> <!-- list of all releases -->
 
+    <li>0.7 - 2009-02-13
+      <ul>
+	<li>new command: segy-validate - tries to find problem spots in segy files</li>
+	<li>segy-metadata: now can force year and julian day if need be</li>
+	<li>segy-info: text mode formats a bit better</li>
+	<li>segy: changed the handling of coordinates.  'x' and 'y' are now interpreted coordinates.  use 'x_raw' and 'y_raw' for originals</li>
+	<li>debugging: in checkpoint, fixed the filename to match the actual calling file</li>
+	<li>new file: common_opts for command line options that are common to many programs</li>
+      </ul>
+    </li>
+
     <li>0.6 - 2009-02-12
       <ul>
 	<li>More error trappings for ODEC format.  Some only read in Sonarweb</li>

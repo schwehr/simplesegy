@@ -27,6 +27,7 @@ Stripped down SEGY reader.""",
       segy-metadata = simplesegy.cmds.metadata:main
       segy-info = simplesegy.cmds.info:main
       segy-slice = simplesegy.cmds.slice:main
+      segy-validate = simplesegy.cmds.validate:main
       ''',
       package_data = {
         'docs': ['*'],

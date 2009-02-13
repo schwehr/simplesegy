@@ -135,6 +135,9 @@ def validate_trace(trace,out=sys.stdout,verbose=False):
     else:
         out.write('FAIL (%d)\n' % t.scaler_coord); error_count += 1
 
+#    # FIX: I haven't yet done 
+#    if t.coord_units in (2,3,4):
+
 # x_raw
 # y_raw
 # grp_x_raw
