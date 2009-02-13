@@ -21,13 +21,15 @@ Fill in a metadata template
 '''
 
 import traceback
-import os,sys
-import Cheetah.Template 
-#from . import segy  # Added in python 2.5
-#from simplesegy import segy
+import os
+import sys
+import datetime
+import time
 
-#from . import segy  # Added in python 2.5
+import Cheetah.Template 
+
 import simplesegy.segy as segy
+from simplesegy.cmds import common_opts
 
 def main():
     '''
@@ -39,23 +41,15 @@ def main():
     parser.add_option('-t', '--template', dest='template', default=None,
                       help='Cheetah template to fill in')
 
-    parser.add_option('-T', '--trace-trailer-size', dest='trace_trailer_size', default=0,
-                      type='int',
-                      help='If vendors put in extra data after each trace (ODEC needs 320) [default: %default]')
-
-    parser.add_option('-B', '--byte-swap', dest='swap_byte_order', default=False, action='store_true',
-                      help='Use this for files that have their byte order wrong (e.g. ODEC)')
-
-    parser.add_option('-v', '--verbose', dest='verbose', default=False, action='store_true',
-                      help='run the tests run in verbose mode')
-
     parser.add_option('--year', dest='force_year', default=None, type='int',
                       help='Force time [default: %default]')
 
     parser.add_option('--julian-day', dest='force_julian_day', default=None, type='int',
                       help='Force time [default: %default]')
 
+    common_opts.add_odec(parser)
 
+    common_opts.add_verbose(parser)
 
     (options, args) = parser.parse_args()
     o = options
@@ -79,6 +73,25 @@ def main():
             filename = os.path.basename(filename)  # Drop the results in the current directory
 
             (x_min,y_min),(x_max,y_max),(t_min,t_max) = sgy.trace_metadata()
+
+            if ( (t_min is None or t_max is None) and o.force_year is None):
+                sys.exit('ERROR: bad time range.  Can you force it?')
+
+            if o.force_year is not None:
+                t_min = None
+                t_max = None
+                last_hour = None
+                if v:
+                    sys.stderr.write('Computing forced time range assuming hour, min, sec are valid')
+                for tracecount,trace in enumerate(sgy):
+                    if last_hour is not None and last_hour > trace.hour:
+                        raise SegyError('File spans days.  That is not okay for forced year/julian day')
+                    last_hour = trace.hour
+                    t = time.strptime('%4d %03d' % (o.force_year,o.force_julian_day),'%Y %j')
+                    t = datetime.datetime(o.force_year,t.tm_mon,t.tm_mday,trace.hour,trace.min,trace.sec)
+                    if not t_min:
+                        t_min = t
+                    t_max = t
 
             line_info = {
                 'datetime_min':t_min,
