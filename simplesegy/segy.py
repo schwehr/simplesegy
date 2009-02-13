@@ -106,10 +106,10 @@ trace_field_lut = {
         'scaler_elev_depth':('>h',68,70),
 
         'scaler_coord':('>h',70,72),
-        'x':('>i',72,76),
-        'y':('>i',76,80),
-        'grp_x':('>i',80,84),
-        'grp_y':('>i',84,88),
+        'x_raw':('>i',72,76),
+        'y_raw':('>i',76,80),
+        'grp_x_raw':('>i',80,84),
+        'grp_y_raw':('>i',84,88),
         'coord_units':('>h',88,90),
 
         'wx_vel':('>h',90,92),
@@ -193,6 +193,59 @@ trace_field_lut = {
 }
 '''field name: struct code, start, end'''
 
+def rawpos_to_geographic(trace,field_name,verbose):
+        v = verbose
+        scalar = trace.scaler_coord
+        units = trace.coord_units
+
+        coord = trace.__getattr__(field_name)
+
+        if scalar not in (-10000, -1000, -100, -10, 0 , 10, 100, 1000, 10000):
+            raise SegyTraceError('Invalid scalar of %d' % scalar)
+
+        if units>4:
+            sys.stderr.write('forcing units to 3 for %s.  Is this odd odec?\n'% units)
+            units=3
+
+        if units==0:
+            if v: 
+                sys.stderr.write('forcing units to 3 for a 0\n')
+            units=3
+
+        if units==1: # Length (meters or feet)
+            pass # Nothing to do
+
+        elif units==2: # Seconds of arc
+            coord /= 3600.
+            if scalar>0: # Multiplier
+                coord *= scalar
+            if scalar<0: # Divisor
+                coord /= abs(scalar)
+
+        elif units==3: # Decimal degrees - FIX: is this always a float or just for ODEC?
+            if self.swap_byte_order:
+                fmt = '<2f'
+            else:
+                fmt = '>2f'
+            # It's an IEEE float, have to decode
+            start = trace_field_lut[field_name][1]
+            end = trace_field_lut[field_name][2]
+            assert (0!=start)
+            assert (0!=end)
+            coord = struct.unpack(fmt,trace.data[trace.offset+start:trace.offset+end])
+            if scalar>0: # Multiplier
+                coord *= scalar
+            if scalar<0: # Divisor
+                coord /= abs(scalar)
+
+        elif units==4: # Degrees, minutes, seconds
+            print 'units 4 debugging.  incoming values: ',x,y,scalar
+            assert False
+        #else:
+        #    raise SegyError('Invalide or unsupported coordinate units: %d' % units)
+
+        return coord
+
 
 class Trace:
     '''As defined in Segy Rev 1
@@ -253,6 +306,7 @@ class Trace:
                 fmt = '%s%d%s' % (endian,self.trace_samples, code[1:])
                 self.samples = struct.unpack(fmt, self.data[base:end]) 
                 return self.samples
+
         if name in trace_field_lut:
             struct_code,start,end = trace_field_lut[name]
             if self.swap_byte_order:
@@ -264,8 +318,14 @@ class Trace:
         #
         # Special aggregate names
         # 
+        if name == 'x':
+            return rawpos_to_geographic(self, 'x_raw', self.verbose)
+        if name == 'y':
+            return rawpos_to_geographic(self, 'y_raw', self.verbose)
+
         if name == 'pos':
-            return self.position_geographic()
+            return self.x,self.y #self.position_geographic()
+
         if name == 'time':
             return self.datetime()
 
@@ -279,62 +339,14 @@ class Trace:
         t = time.strptime('%4d %03d' % (self.year,julian_day),'%Y %j')
         return datetime.datetime(self.year,t.tm_mon,t.tm_mday,self.hour,self.min,self.sec)
 
-    def position_raw(self):
-        return self.x,self.y
-
     def position_geographic(self):
         '''
         I think the knudsen positions of dividing by 3600000 is not correct for the coord_units
         @bug: this will fail near 0,0
         @todo: pay attention to coord_units'''
-        scalar = self.scaler_coord
-        units = self.coord_units
-        x = self.x
-        y = self.y
 
-        if scalar not in (-10000, -1000, -100, -10, 0 , 10, 100, 1000, 10000):
-            raise SegyTraceError('Invalid scalar of %d' % scalar)
+        return self.x,self.y
 
-        if units>4:
-            sys.stderr.write('forcing units to 3 for %s.  Is this odd odec?\n'% units)
-            units=3
-
-        if units==0:
-            if self.verbose: sys.stderr.write('forcing units to 3 for a 0\n')
-            units=3
-
-        if units==1: # Length (meters or feet)
-            pass # Nothing to do
-        elif units==2: # Seconds of arc
-            x /= 3600.
-            y /= 3600.
-            if scalar>0: # Multiplier
-                x *= scalar
-                y *= scalar
-            if scalar<0: # Divisor
-                scalar = abs(scalar)
-                x /= scalar
-                y /= scalar
-        elif units==3: # Decimal degrees - FIX: is this always a float or just for ODEC?
-            if self.swap_byte_order:
-                fmt = '<2f'
-            else:
-                fmt = '>2f'
-            x,y = struct.unpack(fmt,self.data[self.offset+72:self.offset+80])
-            if scalar>0: # Multiplier
-                x *= scalar
-                y *= scalar
-            if scalar<0: # Divisor
-                scalar = abs(scalar)
-                x /= scalar
-                y /= scalar
-        elif units==4: # Degrees, minutes, seconds
-            print 'units 4 debugging.  incoming values: ',x,y,scalar
-            assert False
-        #else:
-        #    raise SegyError('Invalide or unsupported coordinate units: %d' % units)
-
-        return  x,y
 
 class SegyIterator:
     'Iterate across the traces of a SEGY file'
@@ -531,11 +543,14 @@ class Segy:
         y_min=None
         y_max=None
         t_min=None
+        t_max=None
 
         try:
             for tracecount,t in enumerate(self):
 
-                if not t_min: t_min = t.datetime()
+                # Watch out for bad times!
+                if not t_min and t.year != 0: 
+                    t_min = t.datetime()
                 x,y = t.position_geographic()
                 if not x_min or x<x_min: x_min = x
                 if not x_max or x>x_max: x_max = x
@@ -543,7 +558,8 @@ class Segy:
                 if not y_min or y<y_min: y_min = y
                 if not y_max or y>y_max: y_max = y
 
-                t_max = t.datetime()
+                if t.year != 0:
+                    t_max = t.datetime()
         except SegyTraceError, e:
             sys.stderr.write('    Exception:' + str(type(Exception))+'\n')
             sys.stderr.write('    Exception args:'+ str(e)+'\n')
