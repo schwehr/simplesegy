@@ -49,9 +49,21 @@ def main():
     parser.add_option('-v', '--verbose', dest='verbose', default=False, action='store_true',
                       help='run the tests run in verbose mode')
 
+    parser.add_option('--year', dest='force_year', default=None, type='int',
+                      help='Force time [default: %default]')
+
+    parser.add_option('--julian-day', dest='force_julian_day', default=None, type='int',
+                      help='Force time [default: %default]')
+
+
+
     (options, args) = parser.parse_args()
     o = options
     v = o.verbose
+
+    if (   (o.force_year is not None and o.force_julian_day is     None) 
+        or (o.force_year is     None and o.force_julian_day is not None)):
+        sys.exit('Must specify both year and julian day')
 
     for filename in args:
         filesize = os.path.getsize(filename) / 1000000. # Make it MB
