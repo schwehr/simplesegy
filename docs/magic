@@ -1,0 +1,39 @@
+#Magic
+0	byte	67	SEGY seismic, ASCII
+>3500	beshort	0x0	revision 0
+>3500	beshort	0x1	revision 1
+
+0	byte	195	SEGY seismic, EBCDIC
+>3500	beshort   0x0000       revision 0
+>3500	beshort   0x0001       revision 1
+
+# Atlas Hydrosweep starts with any of these packets
+# MB-System code of mb21
+0	string	ERGNPARA	Hydrosweep multibeam sonar
+0	string	ERGNMESS	Hydrosweep multibeam sonar
+0	string	ERGNSLZT	Hydrosweep multibeam sonar
+0	string	ERGNAMPL	Hydrosweep multibeam sonar
+0	string	ERGNEICH	Hydrosweep multibeam sonar
+0	string	ERGNHYDI	Hydrosweep multibeam sonar
+0	string	MEABCOMM	Hydrosweep multibeam sonar
+0	string	MEABHYDI	Hydrosweep multibeam sonar
+0	string	MEABPDAT	Hydrosweep multibeam sonar
+
+# Seabeam 2100 
+# mbsystem code mb41
+0	string SB2100DR	SeaBeam 2100 DR multibeam sonar
+0	string SB2100PR SeaBeam 2100 PR
+
+# EM3002
+# mb58
+# 0479 .all
+0	belong	0xdc020000	EM 3002 multibeam sonar
+
+# EM120
+# mb51
+0	belong	0x000001aa	EM 120 multibeam sonar
+
+# MGD77 - http://www.ngdc.noaa.gov/mgg/dat/geodas/docs/mgd77.htm
+# mb161
+9	string MGD77	MGD77 Header, Marine Geophysical Data Exchange Format
+0       regex	5[A-Z0-9][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][+-][0-9]	MGD77 Data, Marine Geophysical Data Exchange Format
