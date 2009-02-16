@@ -1,39 +1,80 @@
-#Magic
+# Magic -*- shell-script -*-
+
+# Society of Exploration Geophysicis format Y (SEG-Y)
+# http://www.seg.org/
 0	byte	67	SEGY seismic, ASCII
->3500	beshort	0x0	revision 0
->3500	beshort	0x1	revision 1
+>3500	beshort	x	revision %d
+#>3500	beshort	0x0	revision 0
+#>3500	beshort	0x1	revision 1
 
 0	byte	195	SEGY seismic, EBCDIC
->3500	beshort   0x0000       revision 0
->3500	beshort   0x0001       revision 1
+>3500	beshort	x	revision %d
+#>3500	beshort   0x0000       revision 0
+#>3500	beshort   0x0001       revision 1
+# Optionally look in the first trace for the trace format type
+
+
+#
+# MULTIBEAM SONARS http://www.ldeo.columbia.edu/res/pi/MB-System/formatdoc/
+#
 
 # Atlas Hydrosweep starts with any of these packets
-# MB-System code of mb21
-0	string	ERGNPARA	Hydrosweep multibeam sonar
-0	string	ERGNMESS	Hydrosweep multibeam sonar
-0	string	ERGNSLZT	Hydrosweep multibeam sonar
-0	string	ERGNAMPL	Hydrosweep multibeam sonar
-0	string	ERGNEICH	Hydrosweep multibeam sonar
-0	string	ERGNHYDI	Hydrosweep multibeam sonar
-0	string	MEABCOMM	Hydrosweep multibeam sonar
-0	string	MEABHYDI	Hydrosweep multibeam sonar
-0	string	MEABPDAT	Hydrosweep multibeam sonar
+# http://epic.awi.de/Publications/Gee1996a.pdf
+# MB-System code of mb21s
+# is BANDHEAD real?
+0	string	BANDHEAD 	Hydrosweep multibeam sonar
+0	string	ERGN	Hydrosweep multibeam sonar
+0	string	MEAB	Hydrosweep multibeam sonar
+#0	string	ERGNAMPL	Hydrosweep multibeam sonar
+#0	string	ERGNCTDS	Hydrosweep multibeam sonar
+#0	string	ERGNEICH	Hydrosweep multibeam sonar
+#0	string	ERGNHYDI	Hydrosweep multibeam sonar
+#0	string	ERGNMESS	Hydrosweep multibeam sonar
+#0	string	ERGNPARA	Hydrosweep multibeam sonar
+#0	string	ERGNPARA	Hydrosweep multibeam sonar
+#0	string	ERGNSLZT	Hydrosweep multibeam sonar
+#0	string	MEABCOMM	Hydrosweep multibeam sonar
+#0	string	MEABHYDI	Hydrosweep multibeam sonar
+#0	string	MEABPDAT	Hydrosweep multibeam sonar
 
 # Seabeam 2100 
 # mbsystem code mb41
+0	string SB2100	SeaBeam 2100 multibeam sonar
 0	string SB2100DR	SeaBeam 2100 DR multibeam sonar
 0	string SB2100PR SeaBeam 2100 PR
 
-# EM3002
-# mb58
-# 0479 .all
-0	belong	0xdc020000	EM 3002 multibeam sonar
+# SIMRAD Kongsberg
+# EM 3002, EM 3000, EM 2000, EM 1002, EM 710, EM 302, EM 122, ME 70, EM 300 and EM 120 
+# mbio 56 and 58
 
-# EM120
-# mb51
-0	belong	0x000001aa	EM 120 multibeam sonar
+# Current raw.all format.  mb56
+4	byte	0x02	SIMRAD Kongsberg multibeam sonar
+# not working?
+#>6	uleshort x	EM %d
+
 
 # MGD77 - http://www.ngdc.noaa.gov/mgg/dat/geodas/docs/mgd77.htm
 # mb161
 9	string MGD77	MGD77 Header, Marine Geophysical Data Exchange Format
-0       regex	5[A-Z0-9][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][+-][0-9]	MGD77 Data, Marine Geophysical Data Exchange Format
+0       regex	5[A-Z0-9][A-Z0-9\ ][A-Z0-9\ ] MGD77 Data, Marine Geophysical Data Exchange Format
+#0       regex	5[A-Z0-9][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][+-][0-9]	MGD77 Data, Marine Geophysical Data Exchange Format
+
+# Caris LIDAR format for LADS comes as two parts... ascii location file and binary waveform data
+0	string	HCA	LADS Caris Ascii Format (CAF) bathymetric lidar
+# (?P<version>[0-9]*[.][0-9]*),
+
+0	string	HCB	LADS Caris Binary Format (CBF) bathymetric lidar
+# Major version number followed by minor version... untested
+>1      byte    x	version %d
+>2	byte	x	.%d
+
+
+
+######################################################################
+# TODO
+# S57 ENC
+# BSB RNC if not already handled
+# Caris project files
+# ADCP formats
+# E00
+# GSF http://www.saic.com/maritime/gsf/
