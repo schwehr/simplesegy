@@ -2,16 +2,15 @@
 
 # Society of Exploration Geophysicis format Y (SEG-Y)
 # http://www.seg.org/
+# FIX: C is bad
+# Can we trigger off of more?  END EBCDIC, END ASCII, or something else?
 0	byte	67	SEGY seismic, ASCII
->3500	beshort	x	revision %d
-#>3500	beshort	0x0	revision 0
-#>3500	beshort	0x1	revision 1
+>3500	beshort	x	revision %u
 
 0	byte	195	SEGY seismic, EBCDIC
->3500	beshort	x	revision %d
-#>3500	beshort   0x0000       revision 0
-#>3500	beshort   0x0001       revision 1
-# Optionally look in the first trace for the trace format type
+>3500	beshort	x	revision %u
+>3500	beshort   0x0100       revision 1 (byte order reversed)
+
 
 
 #
@@ -41,7 +40,7 @@
 # mbsystem code mb41
 0	string SB2100	SeaBeam 2100 multibeam sonar
 0	string SB2100DR	SeaBeam 2100 DR multibeam sonar
-0	string SB2100PR SeaBeam 2100 PR
+0	string SB2100PR SeaBeam 2100 PR multibeam sonar
 
 # SIMRAD Kongsberg
 # EM 3002, EM 3000, EM 2000, EM 1002, EM 710, EM 302, EM 122, ME 70, EM 300 and EM 120 
@@ -49,25 +48,25 @@
 
 # Current raw.all format.  mb56
 4	byte	0x02	SIMRAD Kongsberg multibeam sonar
-# not working?
-#>6	uleshort x	EM %d
+>6	leshort x	EM %u
 
 
 # MGD77 - http://www.ngdc.noaa.gov/mgg/dat/geodas/docs/mgd77.htm
 # mb161
 9	string MGD77	MGD77 Header, Marine Geophysical Data Exchange Format
-0       regex	5[A-Z0-9][A-Z0-9\ ][A-Z0-9\ ] MGD77 Data, Marine Geophysical Data Exchange Format
+# Does this work?
+0       regex	^5[A-Z0-9][A-Z0-9\ ][A-Z0-9\ ] MGD77 Data, Marine Geophysical Data Exchange Format
 #0       regex	5[A-Z0-9][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][A-Z0-9\ ][+-][0-9]	MGD77 Data, Marine Geophysical Data Exchange Format
 
 # Caris LIDAR format for LADS comes as two parts... ascii location file and binary waveform data
 0	string	HCA	LADS Caris Ascii Format (CAF) bathymetric lidar
-# (?P<version>[0-9]*[.][0-9]*),
+>4	regex [0-9]*\.[0-9]*	version %s
 
 0	string	HCB	LADS Caris Binary Format (CBF) bathymetric lidar
-# Major version number followed by minor version... untested
->1      byte    x	version %d
->2	byte	x	.%d
+>3      byte    x	version %d .
+>4	byte	x	%d
 
+0	string	Identification_Information	FGDC ASCII metadata
 
 
 ######################################################################
@@ -78,3 +77,4 @@
 # ADCP formats
 # E00
 # GSF http://www.saic.com/maritime/gsf/
+# <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
