@@ -1,5 +1,15 @@
 # Magic -*- shell-script -*-
 
+######################################################################
+# TODO
+# S57 ENC
+# BSB RNC if not already handled
+# Caris project files
+# ADCP formats
+# E00
+# GSF http://www.saic.com/maritime/gsf/
+
+
 # Society of Exploration Geophysicis format Y (SEG-Y)
 # http://www.seg.org/
 # FIX: C is bad
@@ -11,7 +21,12 @@
 >3500	beshort	x	revision %u
 >3500	beshort   0x0100       revision 1 (byte order reversed)
 
-
+# Knudsen subbottom chirp profiler - Binary File Format: B9
+# KEB D409-03167 V1.75 Huffman
+0	string	KEB\ 	Knudsen seismic KEL binary (KEB) -
+>4	regex	[-A-Z0-9]*	Software: %s
+>>&1	regex	V[0-9]*\.[0-9]*	version %s
+#>>>&2	regex	Huffman	Huffman compressed
 
 #
 # MULTIBEAM SONARS http://www.ldeo.columbia.edu/res/pi/MB-System/formatdoc/
@@ -69,12 +84,41 @@
 0	string	Identification_Information	FGDC ASCII metadata
 
 
-######################################################################
-# TODO
-# S57 ENC
-# BSB RNC if not already handled
-# Caris project files
-# ADCP formats
-# E00
-# GSF http://www.saic.com/maritime/gsf/
-# <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+
+# FROM: http://asbjorn.it/pub/misc/magic.kml.txt
+# Magic local data for file(1) command.
+# Insert here your local magic data. Format is described in magic(5).
+
+#------------------------------------------------------------------------------
+# Type: Google KML, formerly Keyhole Markup Language
+# Future development of this format has been handed
+# over to the Open Geospatial Consortium.
+# http://www.opengeospatial.org/standards/kml/
+# From: Asbjoern Sloth Toennesen <asbjorn@lila.io>
+0 string    \<?xml
+>20  search/400 \ xmlns= 
+>>&0 regex ['"]http://earth.google.com/kml Google KML document
+!:mime application/vnd.google-earth.kml+xml
+>>>&1 string 2.0' \b, version 2.0
+>>>&1 string 2.1' \b, version 2.1
+>>>&1 string 2.2' \b, version 2.2
+
+
+#------------------------------------------------------------------------------
+# Type: OpenGIS KML, formerly Keyhole Markup Language
+# This standard is maintained by the
+# Open Geospatial Consortium.
+# http://www.opengeospatial.org/standards/kml/
+# From: Asbjoern Sloth Toennesen <asbjorn@lila.io>
+>>&0 regex ['"]http://www.opengis.net/kml OpenGIS KML document
+!:mime application/vnd.google-earth.kml+xml
+>>>&1 string 2.2 \b, version 2.2
+
+#------------------------------------------------------------------------------
+# Type: Google KML Archive (ZIP based) 
+# http://code.google.com/apis/kml/documentation/kml_tut.html
+# From: Asbjoern Sloth Toennesen <asbjorn@lila.io>
+0 string    PK\003\004
+>4  byte    0x14
+>>30  string doc.kml Compressed Google KML Document, including resources.
+!:mime application/vnd.google-earth.kmz
