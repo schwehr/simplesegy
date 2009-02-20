@@ -1,5 +1,10 @@
 # Magic -*- shell-script -*-
 
+# $Revision$
+# $Date$
+
+# DRAFT!  Some of these entries are not good.
+
 ######################################################################
 # TODO
 # S57 ENC
@@ -60,11 +65,11 @@
 # SIMRAD Kongsberg
 # EM 3002, EM 3000, EM 2000, EM 1002, EM 710, EM 302, EM 122, ME 70, EM 300 and EM 120 
 # mbio 56 and 58
-
-# Current raw.all format.  mb56
+# Current raw.all format.  mb56,mb57
+# FIX: not a very good detection
 4	byte	0x02	SIMRAD Kongsberg multibeam sonar
->6	leshort x	EM %u
-
+>6	leshort x	EM %u or
+>6	beshort x	EM %u
 
 # MGD77 - http://www.ngdc.noaa.gov/mgg/dat/geodas/docs/mgd77.htm
 # mb161
@@ -84,6 +89,19 @@
 0	string	Identification_Information	FGDC ASCII metadata
 
 
+# mb121
+# FIX: detect what type of data
+8	string	GSF-v	SAIC generic sensor format (GSF) sonar data,
+>&0	regex [0-9]*\.[0-9]*	version %s
+
+# mb183 - MBF_HSDS2LAM - L-DEO HSDS2 processing format
+# FIX: Is this really a good identifier?  or is the FROG a good key?
+# mbexamples.tgz
+0	string	COMM	MBF_HSDS2LAM mb183 multibeam sonar
+
+# This format might not really be very important
+# MBSystem processing caches the mbinfo output
+1	string	Swath\ Data\ File:	mbsystem info cache
 
 # FROM: http://asbjorn.it/pub/misc/magic.kml.txt
 # Magic local data for file(1) command.
