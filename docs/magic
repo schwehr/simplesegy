@@ -134,6 +134,57 @@
 >6	beshort x	EM %u
 
 
+# FIX: NOT YET TESTED by Kurt
+# Submitted by Gordon Keith
+#Simrad data from the old logging system always starts with an Installation
+#telegram so you can search for two bytes 0x0249.
+#The limited data I have from the new logging system seems to start with a
+#Runtime telegrams 0x0252.
+#So the following works for all the Simrad data I have available (not
+#a large sample installation wise):
+# SIMRAD Kongsberg
+# EM 3002, EM 3000, EM 2000, EM 1002, EM 710, EM 302, EM 122, ME 70, EM 300 and EM 120
+# mbio 56 and 58
+# Current raw.all format.  mb56,mb57
+# Should start with Installation telegram
+4      beshort 0x0249  SIMRAD Kongsberg multibeam sonar
+>0      beshort 0
+>>6    beshort x      EM %u
+>2      beshort 0
+>>6    leshort x      EM %u
+# Might start with Runtime telegram
+4      beshort 0x0252  SIMRAD Kongsberg multibeam sonar -
+>0      beshort 0
+>>6    beshort x      EM %u
+>2      beshort 0
+>>6    leshort x      EM %u
+# FIX: not a very good detection
+4      byte    0x02    SIMRAD Kongsberg multibeam sonar :
+>6      leshort x      EM %u or
+>6      beshort x      EM %u
+
+
+# FIX: NOT YET TESTED
+# Triton XTF
+# http://www.tritonimaginginc.com/site/content/public/downloads/Guides/
+# http://en.wikipedia.org/wiki/EXtended_Triton_Format
+# mb84
+# Little endian
+# eXtended Triton Format (XTF)
+# FIX: is the 2nd byte fixed?
+0	byte	0x7B01
+# 8 character
+#>2	regex		Program %s 
+# 8 character
+#>10	
+# sonar type
+# short
+#>34	
+# 0 None
+# 1 JAMSTEC 2-channel chirp
+# 2 ANALOG_C31
+
+
 # Submitted by Peter Lemmond
 # This corresponds to MB-System format 94, L-3/ELAC/SeaBeam XSE vendor
 # format. It is the format of our upgraded SeaBeam 2112 on R/V KNORR.
