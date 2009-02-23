@@ -87,7 +87,7 @@
 0	string	HCA	LADS Caris Ascii Format (CAF) bathymetric lidar
 >4	regex [0-9]*\.[0-9]*	version %s
 
-0	string	HCB	LADS Caris Binary Format (CBF) bathymetric lidar
+0	string	HCB	LADS Caris Binary Format (CBF) bathymetric lidar waveform data
 >3      byte    x	version %d .
 >4	byte	x	%d
 

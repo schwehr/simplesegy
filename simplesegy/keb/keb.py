@@ -65,11 +65,15 @@ class Ping:
         self.data = data[offset:offset+record_size]
 
         if compression is not None:
-            sys.exit('ERROR: Decompression not yet implemented for compression type "%s"' % compression)
+            #sys.exit('ERROR: Decompression not yet implemented for compression type "%s"' % compression)
             # http://www.inference.phy.cam.ac.uk/mackay/python/compression/huffman/
             # http://code.activestate.com/recipes/576603/
 
             # http://books.google.com/books?id=GxKWdn7u4w8C&pg=PA456&lpg=PA456&dq=python+huffman&source=bl&ots=M6u8cXxvu_&sig=DWYdLasXkw06devvQFtKorEu3c4&hl=en&ei=WFacSYK6KteitgfM6_3fBA&sa=X&oi=book_result&resnum=1&ct=result#PPA462,M1
+            import warnings
+            warnings.warn('Huffman not yet decoded')
+            return
+
 
         self.record_id = struct.unpack('B',self.data[0])[0]
         #print 'record_id', self.record_id, hex(self.record_id)
@@ -126,8 +130,8 @@ class Record:
         if 0xb9 == self.type_code:
             self.payload = Ping(data,
                                 record_size = self.record_size,
-                                #offset = self.offset + 10,
-                                offset = self.offset,
+                                offset = self.offset + 10,
+                                #offset = self.offset,
                                 compression = self.compression)
         else:
             print 'unknown/unhandled type_code of',self.type_code,hex(self.type_code)
@@ -200,6 +204,8 @@ class Keb:
 k = Keb('Marianas_Line_013.keb')
 print 'str',str(k)
 
-for rec in k:
+for i,rec in enumerate(k):
+    if i>5: break
     print 'REC',str(rec)
-    print '  PING',str(rec.payload)
+    #print '  PING',str(rec.payload)
+    file('ping%03d.bin' % i,'w').write(rec.payload.data)
