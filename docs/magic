@@ -98,6 +98,22 @@
 #
 ######################################################################
 
+# Contributed by Art Trembanis
+# GeoAcoustics - GeoSwath Plus
+# Broadcast Raw Data File Format
+# 9-GS+-6063/B
+# 4 byte uint creation time
+# 2 byte short raw header size
+# 2 byte short size of ping header
+# 512 wchar_t filename
+# 4 byte in system frequency
+# 2 byte short echosounder type
+# 18 bytes spare
+4	beshort	0x2002	GeoSwath RDF
+#8	search/512	rdf
+
+0	string	Start:-	GeoSwatch auf text file
+
 
 # Atlas Hydrosweep starts with any of these packets
 # http://epic.awi.de/Publications/Gee1996a.pdf
