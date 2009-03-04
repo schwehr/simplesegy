@@ -242,6 +242,10 @@
 
 0	string	%%\ TDR\ 2.0\ Binary	Fledermaus object or scene
 
+# http://www.ecma-international.org/publications/standards/Ecma-363.htm
+# 3D in PDFs
+0	string	U3D	ECMA-363, Universal 3D
+
 ######################################################################
 #
 # Already in file magic db
