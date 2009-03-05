@@ -239,12 +239,33 @@
 ######################################################################
 
 # IVS - IVS3d.com
-
+# Tagged Data Represetation
 0	string	%%\ TDR\ 2.0\ Binary	Fledermaus object or scene
 
 # http://www.ecma-international.org/publications/standards/Ecma-363.htm
 # 3D in PDFs
 0	string	U3D	ECMA-363, Universal 3D
+
+# 3D CAD format.  Sort of open.
+# http://www.openhsf.org/specification/format.html
+# FIX: this is not very good
+#0	regex	;+\s*HSF\s*V[0-9]+.[0-9]*
+#0	regex	;+[:space:]*HSF
+0	string	;;\ HSF 	Hoops Streaming File Format (HSF)
+#0	search/100	HSF 	Hoops Streaming File Format (HSF)
+>1	regex	V[0-9]+\.[0-9]+	version %s
+
+# http://en.wikipedia.org/wiki/ACIS#File_format
+# http://local.wasp.uwa.edu.au/~pbourke/dataformats/sat/sat.pdf
+# Sample 3 line header:
+# 700 0 1 0           
+# 30 Autodesk Inventor 12.0.0.25400 18 ASM 13.0.0.5500 NT 24 Wed Nov 21 12:00:37 2007 
+# 1 9.9999999999999995e-007 1e-010 
+
+# Sample 
+#712 0 4 0
+#11 Scheme AIDE 11 ACIS 7.0 NT 24 Mon Apr 09 16:44:18 2001
+#-1 9.9999999999999995e-007 1e-010
 
 ######################################################################
 #
