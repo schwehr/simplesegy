@@ -240,7 +240,17 @@
 
 # IVS - IVS3d.com
 # Tagged Data Represetation
-0	string	%%\ TDR\ 2.0\ Binary	Fledermaus object or scene
+0	string	%%\ TDR\ 2.0	IVS Fledermaus TDR file
+#0	string	%%\ TDR\ 2.0\ Binary\nFledermaus	IVS Fledermaus scene
+#0	string	%%\ TDR\ 2.0\ Binary\nCreated	IVS Fledermaus sd file
+#0	string	%%\ TDR\ 2.0\ Binary\nFledermaus\ cr	IVS Fledermaus movie
+#0	string	%%\ TDR\ 2.0\ Binary\n%%	IVS shade file
+
+#0	string	%%\ TDR\ 2.0\ Binary\nFledermaus\ wrote\ this\ scene\ file\!	IVS Fledermaus scene
+#0	string	%%\ TDR\ 2.0\ Binary\nCreated\ by:\ objectbuilder	IVS Fledermaus sd file
+#0	string	%%\ TDR\ 2.0\ Binary\nFledermaus\ created\ movie	IVS Fledermaus movie
+
+
 
 # http://www.ecma-international.org/publications/standards/Ecma-363.htm
 # 3D in PDFs
