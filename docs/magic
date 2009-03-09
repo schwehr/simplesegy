@@ -98,6 +98,10 @@
 #
 ######################################################################
 
+# WASSP WMB-160F
+# Unconfirmed format report by Chris marinedtm@gmail.com to the MB-System list
+0	string 0xff7f7fff	WASSP sonar
+
 # Contributed by Art Trembanis
 # GeoAcoustics - GeoSwath Plus
 # Broadcast Raw Data File Format
@@ -234,9 +238,11 @@
 
 ######################################################################
 #
-# Visualization
+# Visualization and 3D modeling
 #
 ######################################################################
+
+# http://local.wasp.uwa.edu.au/~pbourke/dataformats/
 
 # IVS - IVS3d.com
 # Tagged Data Represetation
