@@ -73,7 +73,7 @@ class Ping:
             import warnings
             warnings.warn('Huffman not yet decoded')
             return
-
+            
 
         self.record_id = struct.unpack('B',self.data[0])[0]
         #print 'record_id', self.record_id, hex(self.record_id)
@@ -205,7 +205,11 @@ k = Keb('Marianas_Line_013.keb')
 print 'str',str(k)
 
 for i,rec in enumerate(k):
-    if i>5: break
+    if i>50:
+        sys.exit('EARLY out of the loop')
     print 'REC',str(rec)
+    #print '  PING',str(rec.payload)
+    #o = file ('ping-compressed-%03d.bin' %i,'w+')
+    #o.write(rec.payload.data)
     #print '  PING',str(rec.payload)
     file('ping%03d.bin' % i,'w').write(rec.payload.data)
