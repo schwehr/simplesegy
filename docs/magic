@@ -99,8 +99,11 @@
 ######################################################################
 
 # WASSP WMB-160F
-# Unconfirmed format report by Chris marinedtm@gmail.com to the MB-System list
-0	string 0xff7f7fff	WASSP sonar
+# Unconfirmed format report by Christian Wilson marinedtm@gmail.com to the MB-System list
+#0	string 0xff7f7fff	WASSP sonar
+# This appears at the beginning of the sample file.
+# FIX: is this really the identifier?
+0	string	ENL	WASSP sonar
 
 # Contributed by Art Trembanis
 # GeoAcoustics - GeoSwath Plus
