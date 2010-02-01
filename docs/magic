@@ -17,6 +17,13 @@
 #<HIPSVesselConfig Version="2.0">
 #  <VesselShape>
 
+######################################################################
+#
+# Acoustic Doppler Current Profilers (ADCP)
+#
+######################################################################
+
+0	beshort	0x7f7f	RDI Acoustic Doppler Current Profiler (ADCP)
 
 ######################################################################
 #
