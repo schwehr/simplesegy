@@ -83,6 +83,13 @@
 >>&1	regex	V[0-9]*\.[0-9]*	version %s
 #>>>&2	regex	Huffman	Huffman compressed
 
+# ODEC Bathy 2010 from the NOAA ship Ron Brown.
+# Data from Danny Brothers at USGS Woods Hole
+# I am guessing that the PNTI,101 always the first
+# line.  Do not have a spec file for PNTI and it is
+# non-standard
+0	string	$PNTI,101,	ODEC Bathy 2010 subbottom chirp
+
 ######################################################################
 #
 # LIDAR - Laser altimetry or bathy
