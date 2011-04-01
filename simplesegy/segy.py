@@ -7,7 +7,7 @@ __license__   = 'Python'
 __contact__   = 'kurt at ccom.unh.edu'
 
 __doc__ ='''
-Read SEG-Y Rev 0 and 1.  Partially derived from Kurt Schwehr's segy-py / seismic-py.
+Read SEG-Y Rev 0 and 1.  Partially derived from segy-py / seismic-py by Kurt Schwehr.
 
 @requires: U{Python<http://python.org/>} >= 2.5
 
@@ -193,7 +193,7 @@ trace_field_lut = {
 }
 '''field name: struct code, start, end'''
 
-def rawpos_to_geographic(trace,field_name,verbose):
+def rawpos_to_geographic(trace,field_name,verbose,swap_byte_order=False):
         v = verbose
         scalar = trace.scaler_coord
         units = trace.coord_units
@@ -223,15 +223,17 @@ def rawpos_to_geographic(trace,field_name,verbose):
                 coord /= abs(scalar)
 
         elif units==3: # Decimal degrees - FIX: is this always a float or just for ODEC?
-            if self.swap_byte_order:
-                fmt = '<2f'
+            # FIX: why was this 2f?
+            if swap_byte_order:
+                fmt = '<f'
             else:
-                fmt = '>2f'
+                fmt = '>f'
             # It's an IEEE float, have to decode
             start = trace_field_lut[field_name][1]
             end = trace_field_lut[field_name][2]
             assert (0!=start)
             assert (0!=end)
+            #print 'decoding:',trace.offset+start,trace.offset+end
             coord = struct.unpack(fmt,trace.data[trace.offset+start:trace.offset+end])
             if scalar>0: # Multiplier
                 coord *= scalar
@@ -319,9 +321,9 @@ class Trace:
         # Special aggregate names
         # 
         if name == 'x':
-            return rawpos_to_geographic(self, 'x_raw', self.verbose)
+            return rawpos_to_geographic(self, 'x_raw', self.verbose, self.swap_byte_order)
         if name == 'y':
-            return rawpos_to_geographic(self, 'y_raw', self.verbose)
+            return rawpos_to_geographic(self, 'y_raw', self.verbose, self.swap_byte_order)
 
         if name == 'pos':
             return self.x,self.y #self.position_geographic()
@@ -333,10 +335,11 @@ class Trace:
 
     def datetime(self):
         '''
+        @todo: what is the best way to deal with non-sense year/day?
         @todo: factor in time basis
         '''
         julian_day = self.day
-        t = time.strptime('%4d %03d' % (self.year,julian_day),'%Y %j')
+        t = time.strptime('%04d %03d' % (self.year,julian_day),'%Y %j')
         return datetime.datetime(self.year,t.tm_mon,t.tm_mday,self.hour,self.min,self.sec)
 
     def position_geographic(self):
@@ -561,12 +564,16 @@ class Segy:
                 if t.year != 0:
                     t_max = t.datetime()
         except SegyTraceError, e:
-            sys.stderr.write('    Exception:' + str(type(Exception))+'\n')
-            sys.stderr.write('    Exception args:'+ str(e)+'\n')
+            #sys.stderr.write('    Exception:' + str(type(Exception))+'\n')
+            #sys.stderr.write('    Exception args:'+ str(e)+'\n')
+            #traceback.print_exc(file=sys.stderr)
+            sys.stderr.write('  Bad date: year: %d julian_day: %d\n' % (t.year, t.day))
         except ValueError, e:
-            sys.stderr.write('    Exception:' + str(type(Exception))+'\n')
-            sys.stderr.write('    Exception args:'+ str(e)+'\n')
-        
+            #sys.stderr.write('    Exception:' + str(type(Exception))+'\n')
+            #sys.stderr.write('    Exception args:'+ str(e)+'\n')
+            sys.stderr.write('  Bad date: year: %d julian_day: %d\n' % (t.year, t.day))
+            #traceback.print_exc(file=sys.stderr)
+            
         return (x_min,y_min),(x_max,y_max),(t_min,t_max)
 
     def __iter__(self):
