@@ -1,11 +1,4 @@
 #!/usr/bin/env python
-__author__    = 'Kurt Schwehr'
-__version__   = '$Revision: 4799 $'.split()[1]
-__revision__  = __version__ # For pylint
-__date__ = '$Date: 2006-09-25 11:09:02 -0400 (Mon, 25 Sep 2006) $'.split()[1]
-__copyright__ = '2009'
-__license__   = 'Python'
-__contact__   = 'kurt at ccom.unh.edu'
 
 __doc__ ='''
 Fill in a metadata template
@@ -16,7 +9,7 @@ Fill in a metadata template
 @undocumented: __doc__
 @since: 2009-Feb-03
 @status: under development
-@organization: U{CCOM<http://ccom.unh.edu/>} 
+@organization: U{CCOM<http://ccom.unh.edu/>}
 '''
 
 import os, sys
@@ -30,7 +23,7 @@ formats = ('text','kml')
 
 def main():
     '''
-    command line interface for templating 
+    command line interface for templating
     '''
     from optparse import OptionParser
     parser = OptionParser(usage="%prog [options]",
@@ -44,7 +37,7 @@ def main():
     parser.add_option('-s','--summary', dest='summary', default=False, action='store_true',
                       help='Summary data including bounding box, bounding time, and traces')
 
-    
+
     parser.add_option('-t', '--text-header', dest='text_header', default=False, action='store_true',
                       help='print the text header')
 
@@ -95,9 +88,9 @@ def main():
                          verbose=v
                          )
         elif 'kml'==o.format:
-            
+
             out = sys.stdout
-            kml.convert(out, sgy, 
+            kml.convert(out, sgy,
                          summary=o.summary,
                          text_header=o.text_header,
                          bin_header=o.bin_header,
@@ -105,4 +98,4 @@ def main():
                          trace_fields=o.trace_fields,
                          trace_num=o.trace_num,
                          verbose=v
-                         )            
+                         )

@@ -1,24 +1,5 @@
 #!/usr/bin/env python
-__author__    = 'Kurt Schwehr'
-__version__   = '$Revision: 4799 $'.split()[1]
-__revision__  = __version__ # For pylint
-__date__ = '$Date: 2006-09-25 11:09:02 -0400 (Mon, 25 Sep 2006) $'.split()[1]
-__copyright__ = '2009'
-__license__   = 'Python'
-__contact__   = 'kurt at ccom.unh.edu'
-
-__doc__ ='''
-Fill in a metadata template
-
-@requires: U{Python<http://python.org/>} >= 2.5
-@requires: U{epydoc<http://epydoc.sourceforge.net/>} >= 3.0.1
-@requires: U{cheetah<http://www.cheetahtemplate.org/>} >= 2.0
-
-@undocumented: __doc__
-@since: 2009-Jan-26
-@status: under development
-@organization: U{CCOM<http://ccom.unh.edu/>} 
-'''
+"""Fill in a metadata template."""
 
 import traceback
 import os
@@ -26,14 +7,14 @@ import sys
 import datetime
 import time
 
-import Cheetah.Template 
+import Cheetah.Template
 
 import simplesegy.segy as segy
 from simplesegy.cmds import common_opts
 
 def main():
     '''
-    command line interface for templating 
+    command line interface for templating
     '''
     from optparse import OptionParser
     parser = OptionParser(usage="%prog [options]",
@@ -55,7 +36,7 @@ def main():
     o = options
     v = o.verbose
 
-    if (   (o.force_year is not None and o.force_julian_day is     None) 
+    if (   (o.force_year is not None and o.force_julian_day is     None)
         or (o.force_year is     None and o.force_julian_day is not None)):
         sys.exit('Must specify both year and julian day')
 

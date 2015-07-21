@@ -1,23 +1,9 @@
 #!/usr/bin/env python
 
-__author__    = 'Kurt Schwehr'
-__version__   = '$Revision: 4799 $'.split()[1]
-__revision__  = __version__ # For pylint
-__date__ = '$Date: 2006-09-25 11:09:02 -0400 (Mon, 25 Sep 2006) $'.split()[1]
-__copyright__ = '2009'
-__license__   = 'Python'
-__contact__   = 'kurt at ccom.unh.edu'
+"""Read Knudsen KEL Binary KEL B9 format.
 
-__doc__ ='''
-Read Knudsen KEL Binary KEL B9 format as described in D101-03574-Rev1.1 - B9 format.pdf
-
-@requires: U{Python<http://python.org/>} >= 2.5
-
-@undocumented: __doc__
-@since: 2009-Jan-25
-@status: under development
-@organization: U{CCOM<http://ccom.unh.edu/>} 
-'''
+Described in D101-03574-Rev1.1 - B9 format.pdf.
+"""
 
 import sys
 import traceback

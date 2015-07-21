@@ -1,30 +1,8 @@
 #!/usr/bin/env python
-__author__    = 'Kurt Schwehr'
-__version__   = '$Revision: 4799 $'.split()[1]
-__revision__  = __version__ # For pylint
-__date__ = '$Date: 2006-09-25 11:09:02 -0400 (Mon, 25 Sep 2006) $'.split()[1]
-__copyright__ = '2009'
-__license__   = 'Python'
-__contact__   = 'kurt at ccom.unh.edu'
+"""Evaluate how valid a SEGY file is."""
 
-__doc__ ='''
-Evaluate how valid a SEGY file is.
-
-@requires: U{Python<http://python.org/>} >= 2.5
-@requires: U{epydoc<http://epydoc.sourceforge.net/>} >= 3.0.1
-@requires: U{cheetah<http://www.cheetahtemplate.org/>} >= 2.0
-
-@undocumented: __doc__
-@since: 2009-Feb-13
-@status: under development
-@organization: U{CCOM<http://ccom.unh.edu/>} 
-'''
-
-#import traceback
 import os
 import sys
-#import datetime
-#import time
 
 import simplesegy.segy as segy
 from simplesegy.cmds import common_opts
