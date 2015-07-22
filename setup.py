@@ -32,6 +32,7 @@ setup(name='simplesegy',
       segy-info = simplesegy.cmds.info:main
       segy-slice = simplesegy.cmds.slice:main
       segy-validate = simplesegy.cmds.validate:main
+      segy-keb = simplesegy.keb.keb:main
       ''',
       package_data = {
         'docs': ['*'],

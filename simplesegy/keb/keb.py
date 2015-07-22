@@ -5,27 +5,29 @@
 Described in D101-03574-Rev1.1 - B9 format.pdf.
 """
 
-import sys
-import traceback
-import os
-import mmap   # load the file into memory directly so it looks like a big array
-import struct # Unpacking of binary data
+import argparse
 import datetime
-import time
+import mmap
+import os
 import re
-#import codecs
+import struct
+import sys
+import time
+import traceback
+import warnings
+
 
 header_re_str = r"""KEB\s*(?P<software>[-A-Z0-9]*)\s*(?P<version>V[0-9]*\.[0-9]*)\s*(?P<compression>Huffman)?"""
 header_re = re.compile(header_re_str)
+DATA_START = 40
 
-
-data_start = 40
 
 class KebIterator:
-    'Iterate across the traces of a Knudsen KEB'
+    """Iterate across the traces of a Knudsen KEB."""
+
     def __init__(self, keb):
         self.keb = keb
-        self.cur_pos = data_start # Always starts at 40
+        self.cur_pos = DATA_START # Always starts at 40
         self.size = keb.size
         self.data = keb.data
         self.compression = keb.compression
@@ -43,23 +45,23 @@ class KebIterator:
         self.cur_pos += len(record)
         return record
 
+
 class Ping:
     '''Record type 0xb9 (185 decimal)'''
     def __init__(self, data, record_size, offset=0, compression=None):
 
-        #print 'offset:',offset,'record_size:',record_size
+        # print 'offset:',offset,'record_size:',record_size
         self.data = data[offset:offset+record_size]
 
         if compression is not None:
-            #sys.exit('ERROR: Decompression not yet implemented for compression type "%s"' % compression)
+            # sys.exit('ERROR: Decompression not yet implemented for type "%s"' % compression)
             # http://www.inference.phy.cam.ac.uk/mackay/python/compression/huffman/
             # http://code.activestate.com/recipes/576603/
 
             # http://books.google.com/books?id=GxKWdn7u4w8C&pg=PA456&lpg=PA456&dq=python+huffman&source=bl&ots=M6u8cXxvu_&sig=DWYdLasXkw06devvQFtKorEu3c4&hl=en&ei=WFacSYK6KteitgfM6_3fBA&sa=X&oi=book_result&resnum=1&ct=result#PPA462,M1
-            import warnings
             warnings.warn('Huffman not yet decoded')
             return
-            
+
 
         self.record_id = struct.unpack('B',self.data[0])[0]
         #print 'record_id', self.record_id, hex(self.record_id)
@@ -68,7 +70,7 @@ class Ping:
 
         self.record_length = struct.unpack('<H',self.data[1:3])[0]
         #print 'record_length',self.record_length
-        
+
         self.record_num = struct.unpack('<H',self.data[3:5])[0]
         self.num_channels = struct.unpack('B',self.data[5])[0]
         self.reserved_bytes = struct.unpack('<H',self.data[6:8])[0] # should be 0
@@ -136,10 +138,10 @@ class Record:
         return self.__unicode__()
 
     def __len__(self):
-        return self.record_size+10 
+        return self.record_size+10
 
-        
-        
+
+
 
 
 class Keb:
@@ -173,7 +175,7 @@ class Keb:
 
 #         sys.exit('EARLY')
 
-        
+
     def __iter__(self):
         return KebIterator(self)
 
@@ -187,15 +189,31 @@ class Keb:
     def __str__(self):
         return(self.__unicode__())
 
-k = Keb('Marianas_Line_013.keb')
-print 'str',str(k)
+# k = Keb('Marianas_Line_013.keb')
+# print 'str',str(k)
 
-for i,rec in enumerate(k):
-    if i>50:
-        sys.exit('EARLY out of the loop')
-    print 'REC',str(rec)
-    #print '  PING',str(rec.payload)
-    #o = file ('ping-compressed-%03d.bin' %i,'w+')
-    #o.write(rec.payload.data)
-    #print '  PING',str(rec.payload)
-    file('ping%03d.bin' % i,'w').write(rec.payload.data)
+# for i,rec in enumerate(k):
+#     if i>50:
+#         sys.exit('EARLY out of the loop')
+#     print 'REC',str(rec)
+#     #print '  PING',str(rec.payload)
+#     #o = file ('ping-compressed-%03d.bin' %i,'w+')
+#     #o.write(rec.payload.data)
+#     #print '  PING',str(rec.payload)
+#     file('ping%03d.bin' % i,'w').write(rec.payload.data)
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('filenames', metavar='N', type=str, nargs='+',
+                 help='Files to get info about.')
+  args = parser.parse_args()
+
+  for filename in args.filenames:
+    print filename
+    keb = Keb(filename)
+    for rec_num, rec in enumerate(keb):
+      print rec
+
+
+if __name__ == '__main__':
+    main()
