@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages
+import os
 import sys, os
 
+from setuptools import setup, find_packages
+
 version=file('VERSION').readline().strip()
+
 
 setup(name='simplesegy',
       version=version,
@@ -15,9 +18,9 @@ setup(name='simplesegy',
       keywords='science geophysics',
       author='Kurt Schwehr',
       author_email='schwehr@gmail.com',
-      url='http://vislab-ccom.unh.edu/~schwehr/software/simplesegy/',
+      url='https://github.com/schwehr/simplesegy',
       license='Apache 2.0',
-      packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
+      packages=find_packages(), # exclude=['examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
       install_requires=[
