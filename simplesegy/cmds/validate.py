@@ -516,8 +516,7 @@ def main():
     it returns the number of errors
     '''
     from optparse import OptionParser
-    parser = OptionParser(usage="%prog [options]",
-                          version="%prog "+__version__+' ('+__date__+')')
+    parser = OptionParser(usage="%prog [options]")
     common_opts.add_odec(parser)
 
     common_opts.add_verbose(parser)

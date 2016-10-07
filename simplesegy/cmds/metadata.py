@@ -17,8 +17,7 @@ def main():
     command line interface for templating
     '''
     from optparse import OptionParser
-    parser = OptionParser(usage="%prog [options]",
-                          version="%prog "+__version__+' ('+__date__+')')
+    parser = OptionParser(usage="%prog [options]")
     parser.add_option('-t', '--template', dest='template', default=None,
                       help='Cheetah template to fill in')
 

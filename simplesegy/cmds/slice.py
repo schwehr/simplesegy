@@ -7,7 +7,8 @@ import os,sys
 import simplesegy.segy as segy
 
 
-def slice(sgy, outfile, force_ascii=False, start_trace=0, end_trace=None, verbose=False):
+def slice(sgy, outfile, force_ascii=False, start_trace=0, end_trace=None,
+          verbose=False):
     v = verbose
     out = file(outfile,'wb')
 
@@ -30,7 +31,7 @@ def slice(sgy, outfile, force_ascii=False, start_trace=0, end_trace=None, verbos
 
     #
     # Copy all the traces
-    # 
+    #
 
     if 0 > start_trace or 0 > end_trace:
         sys.exit('ERROR: trace indices relative to the end not yet implemented')
@@ -56,11 +57,10 @@ def slice(sgy, outfile, force_ascii=False, start_trace=0, end_trace=None, verbos
 
 def main():
     '''
-    command line interface for templating 
+    command line interface for templating
     '''
     from optparse import OptionParser
-    parser = OptionParser(usage="%prog [options]",
-                          version="%prog "+__version__+' ('+__date__+')')
+    parser = OptionParser(usage="%prog [options]")
     parser.add_option('-s', '--start-trace', dest='start_trace', default=0,
                       type = 'int',
                       help='Beginning trace.  Counting starts at 0.  Use negative numbers for relative to the end of file [default: %default]')
@@ -84,7 +84,7 @@ def main():
                       help='run the tests run in verbose mode')
 
     (opt, args) = parser.parse_args()
-    
+
     v = opt.verbose
 
     for filename in args:
